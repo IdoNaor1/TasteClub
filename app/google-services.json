@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "501480667829",
+    "project_id": "tasteclub-2c787",
+    "storage_bucket": "tasteclub-2c787.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:501480667829:android:7238d32dbd615aa1901cfc",
+        "android_client_info": {
+          "package_name": "com.tasteclub.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCDX9jT5iL6V-2jdhls52BiuiDP-aMd1p0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
