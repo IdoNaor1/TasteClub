@@ -12,7 +12,12 @@
           "package_name": "com.tasteclub.app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "501480667829-ohng5398pc2ookcqsquqc235i4o99qcd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCDX9jT5iL6V-2jdhls52BiuiDP-aMd1p0"
@@ -20,7 +25,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "501480667829-ohng5398pc2ookcqsquqc235i4o99qcd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
