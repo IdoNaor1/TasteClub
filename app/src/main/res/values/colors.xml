@@ -2,4 +2,13 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- TasteClub Color Theme -->
+    <color name="primary_brown">#8B5E3C</color>
+    <color name="background_beige">#F5EFE6</color>
+    <color name="surface_card">#EADBC8</color>
+    <color name="accent_caramel">#C97C5D</color>
+    <color name="text_primary">#3E2C23</color>
+    <color name="text_secondary">#6F5B4F</color>
+    <color name="star_amber">#F59E0B</color>
 </resources>
