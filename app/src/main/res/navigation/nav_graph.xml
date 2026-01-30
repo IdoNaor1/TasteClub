@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/splashFragment">
+
+    <!-- ========================================
+         AUTHENTICATION FLOW
+         ======================================== -->
+
+    <!-- Splash Screen - Entry Point -->
+    <fragment
+        android:id="@+id/splashFragment"
+        android:name="com.tasteclub.app.ui.auth.SplashFragment"
+        android:label="@string/app_name"
+        tools:layout="@layout/fragment_splash">
+
+        <!-- Navigate to login if not authenticated -->
+        <action
+            android:id="@+id/action_splash_to_login"
+            app:destination="@id/loginFragment"
+            app:popUpTo="@id/splashFragment"
+            app:popUpToInclusive="true"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out" />
+
+        <!-- Navigate to feed if already authenticated -->
+        <action
+            android:id="@+id/action_splash_to_feed"
+            app:destination="@id/feedFragment"
+            app:popUpTo="@id/splashFragment"
+            app:popUpToInclusive="true"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out" />
+    </fragment>
+
+    <!-- Login Screen -->
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.tasteclub.app.ui.auth.LoginFragment"
+        android:label="@string/login"
+        tools:layout="@layout/fragment_login">
+
+        <!-- Navigate to register -->
+        <action
+            android:id="@+id/action_login_to_register"
+            app:destination="@id/registerFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+
+        <!-- Navigate to forgot password -->
+        <action
+            android:id="@+id/action_login_to_forgot_password"
+            app:destination="@id/forgotPasswordFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+
+        <!-- Navigate to feed after successful login -->
+        <action
+            android:id="@+id/action_login_to_feed"
+            app:destination="@id/feedFragment"
+            app:popUpTo="@id/nav_graph"
+            app:popUpToInclusive="true"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out" />
+    </fragment>
+
+    <!-- Register Screen -->
+    <fragment
+        android:id="@+id/registerFragment"
+        android:name="com.tasteclub.app.ui.auth.RegisterFragment"
+        android:label="@string/register"
+        tools:layout="@layout/fragment_register">
+
+        <!-- Navigate to feed after successful registration -->
+        <action
+            android:id="@+id/action_register_to_feed"
+            app:destination="@id/feedFragment"
+            app:popUpTo="@id/nav_graph"
+            app:popUpToInclusive="true"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out" />
+    </fragment>
+
+    <!-- Forgot Password Screen -->
+    <fragment
+        android:id="@+id/forgotPasswordFragment"
+        android:name="com.tasteclub.app.ui.auth.ForgotPasswordFragment"
+        android:label="@string/forgot_password"
+        tools:layout="@layout/fragment_forgot_password" />
+
+    <!-- ========================================
+         MAIN APP FLOW
+         ======================================== -->
+
+    <!-- Feed Screen - Main Bottom Nav Destination -->
+    <fragment
+        android:id="@+id/feedFragment"
+        android:name="com.tasteclub.app.ui.feed.FeedFragment"
+        android:label="@string/feed"
+        tools:layout="@layout/fragment_feed">
+
+        <!-- Navigate to create review -->
+        <action
+            android:id="@+id/action_feed_to_create_review"
+            app:destination="@id/createReviewFragment"
+            app:enterAnim="@anim/slide_in_up"
+            app:exitAnim="@anim/slide_out_down"
+            app:popEnterAnim="@anim/slide_in_up"
+            app:popExitAnim="@anim/slide_out_down" />
+
+        <!-- Navigate to other user profile (Phase 7 - Optional) -->
+        <action
+            android:id="@+id/action_feed_to_other_profile"
+            app:destination="@id/otherUserProfileFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+
+    <!-- My Posts Screen - Bottom Nav Destination -->
+    <fragment
+        android:id="@+id/myPostsFragment"
+        android:name="com.tasteclub.app.ui.review.MyPostsFragment"
+        android:label="@string/my_posts"
+        tools:layout="@layout/fragment_my_posts">
+
+        <!-- Navigate to create review -->
+        <action
+            android:id="@+id/action_my_posts_to_create_review"
+            app:destination="@id/createReviewFragment"
+            app:enterAnim="@anim/slide_in_up"
+            app:exitAnim="@anim/slide_out_down"
+            app:popEnterAnim="@anim/slide_in_up"
+            app:popExitAnim="@anim/slide_out_down" />
+
+        <!-- Navigate to edit review with argument -->
+        <action
+            android:id="@+id/action_my_posts_to_edit_review"
+            app:destination="@id/editReviewFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+
+    <!-- Profile Screen - Bottom Nav Destination -->
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.tasteclub.app.ui.profile.ProfileFragment"
+        android:label="@string/profile"
+        tools:layout="@layout/fragment_profile">
+
+        <!-- Navigate to login after logout -->
+        <action
+            android:id="@+id/action_profile_to_login"
+            app:destination="@id/loginFragment"
+            app:popUpTo="@id/nav_graph"
+            app:popUpToInclusive="true"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out" />
+    </fragment>
+
+    <!-- Discover Screen - Bottom Nav Destination (Phase 7) -->
+    <fragment
+        android:id="@+id/discoverFragment"
+        android:name="com.tasteclub.app.ui.discover.DiscoverFragment"
+        android:label="@string/discover"
+        tools:layout="@layout/fragment_discover">
+
+        <!-- Navigate to restaurant detail -->
+        <action
+            android:id="@+id/action_discover_to_restaurant_detail"
+            app:destination="@id/restaurantDetailFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+
+    <!-- ========================================
+         SHARED DESTINATIONS
+         ======================================== -->
+
+    <!-- Create Review Screen -->
+    <fragment
+        android:id="@+id/createReviewFragment"
+        android:name="com.tasteclub.app.ui.review.CreateReviewFragment"
+        android:label="@string/create_review"
+        tools:layout="@layout/fragment_create_review" />
+
+    <!-- Edit Review Screen -->
+    <fragment
+        android:id="@+id/editReviewFragment"
+        android:name="com.tasteclub.app.ui.review.EditReviewFragment"
+        android:label="@string/edit_review"
+        tools:layout="@layout/fragment_edit_review">
+
+        <!-- Argument: reviewId (required) -->
+        <argument
+            android:name="reviewId"
+            app:argType="string"
+            app:nullable="false" />
+    </fragment>
+
+    <!-- Other User Profile Screen (Phase 7 - Optional) -->
+    <fragment
+        android:id="@+id/otherUserProfileFragment"
+        android:name="com.tasteclub.app.ui.profile.OtherUserProfileFragment"
+        android:label="@string/user_profile"
+        tools:layout="@layout/fragment_other_user_profile">
+
+        <!-- Argument: userId (required) -->
+        <argument
+            android:name="userId"
+            app:argType="string"
+            app:nullable="false" />
+    </fragment>
+
+    <!-- Restaurant Detail Screen (Phase 7 - Optional) -->
+    <fragment
+        android:id="@+id/restaurantDetailFragment"
+        android:name="com.tasteclub.app.ui.restaurant.RestaurantDetailFragment"
+        android:label="@string/restaurant_detail"
+        tools:layout="@layout/fragment_restaurant_detail">
+
+        <!-- Argument: restaurantId (required) -->
+        <argument
+            android:name="restaurantId"
+            app:argType="string"
+            app:nullable="false" />
+
+        <!-- Argument: restaurantName (optional) -->
+        <argument
+            android:name="restaurantName"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
+    </fragment>
+
+</navigation>
+

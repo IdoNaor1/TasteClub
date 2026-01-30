@@ -8,16 +8,16 @@ import androidx.fragment.app.Fragment
 import com.tasteclub.app.R
 
 /**
- * ProfileFragment - User profile screen
+ * OtherUserProfileFragment - View another user's profile (Phase 7)
  */
-class ProfileFragment : Fragment() {
+class OtherUserProfileFragment : Fragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_profile, container, false)
+        return inflater.inflate(R.layout.fragment_other_user_profile, container, false)
     }
 }
 
