@@ -30,7 +30,7 @@ abstract class TasteClubDatabase : RoomDatabase() {
                     TasteClubDatabase::class.java,
                     "tasteclub_db"
                 )
-                    // במעבר לפיתוח: אפשר להשאיר. בפרודקשן עושים migrations.
+                    // for development - should not be used in production
                     .fallbackToDestructiveMigration()
                     .build()
 
