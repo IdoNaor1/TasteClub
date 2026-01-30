@@ -1,4 +1,4 @@
-package com.tasteclub.app.ui.profile
+package com.tasteclub.app.ui.auth
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -8,16 +8,16 @@ import androidx.fragment.app.Fragment
 import com.tasteclub.app.R
 
 /**
- * ProfileFragment - User profile screen
+ * ForgotPasswordFragment - Password reset screen
  */
-class ProfileFragment : Fragment() {
+class ForgotPasswordFragment : Fragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_profile, container, false)
+        return inflater.inflate(R.layout.fragment_forgot_password, container, false)
     }
 }
 

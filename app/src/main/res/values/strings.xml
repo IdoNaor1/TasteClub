@@ -1,3 +1,23 @@
 <resources>
+    <!-- App Name -->
     <string name="app_name">TasteClub</string>
+
+    <!-- Navigation Labels -->
+    <string name="login">Login</string>
+    <string name="register">Sign Up</string>
+    <string name="forgot_password">Forgot Password</string>
+    <string name="feed">Feed</string>
+    <string name="my_posts">My Posts</string>
+    <string name="profile">Profile</string>
+    <string name="discover">Discover</string>
+    <string name="create_review">Create Review</string>
+    <string name="edit_review">Edit Review</string>
+    <string name="user_profile">User Profile</string>
+    <string name="restaurant_detail">Restaurant</string>
+
+    <!-- Bottom Navigation -->
+    <string name="nav_feed">Feed</string>
+    <string name="nav_my_posts">My Posts</string>
+    <string name="nav_profile">Profile</string>
+    <string name="nav_discover">Discover</string>
 </resources>

@@ -1,4 +1,4 @@
-package com.tasteclub.app.ui.profile
+package com.tasteclub.app.ui.restaurant
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -8,16 +8,16 @@ import androidx.fragment.app.Fragment
 import com.tasteclub.app.R
 
 /**
- * ProfileFragment - User profile screen
+ * RestaurantDetailFragment - Restaurant detail screen (Phase 7)
  */
-class ProfileFragment : Fragment() {
+class RestaurantDetailFragment : Fragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_profile, container, false)
+        return inflater.inflate(R.layout.fragment_restaurant_detail, container, false)
     }
 }
 
