@@ -73,5 +73,19 @@ interface ReviewDao {
     // --------------------
     @Query("SELECT COUNT(*) FROM reviews")
     suspend fun count(): Int
+
+    @Query("""
+    SELECT * FROM reviews
+    ORDER BY createdAt DESC
+""")
+    fun observeFeed(): LiveData<List<ReviewEntity>>
+
+    @Query("""
+    SELECT * FROM reviews
+    WHERE userId = :userId
+    ORDER BY createdAt DESC
+""")
+    fun observeByUser(userId: String): LiveData<List<ReviewEntity>>
+
 }
 
