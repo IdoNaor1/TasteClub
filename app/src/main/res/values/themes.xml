@@ -1,56 +1,37 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
+
     <!-- Base application theme - Material Design 3 -->
     <style name="Base.Theme.TasteClub" parent="Theme.Material3.Light.NoActionBar">
-        <!-- Primary brand color -->
+
+        <!-- Brand colors -->
         <item name="colorPrimary">@color/primary_brown</item>
-        <item name="colorPrimaryVariant">@color/accent_caramel</item>
         <item name="colorOnPrimary">@android:color/white</item>
 
-        <!-- Secondary brand color -->
         <item name="colorSecondary">@color/accent_caramel</item>
-        <item name="colorSecondaryVariant">@color/primary_brown</item>
         <item name="colorOnSecondary">@android:color/white</item>
 
-        <!-- Surface colors -->
-        <item name="colorSurface">@color/background_beige</item>
+        <!-- Surfaces & background -->
+        <item name="colorSurface">@color/surface_card</item>
         <item name="colorOnSurface">@color/text_primary</item>
 
-        <!-- Background colors -->
         <item name="android:colorBackground">@color/background_beige</item>
         <item name="colorOnBackground">@color/text_primary</item>
 
-        <!-- Status bar -->
+        <!-- System UI -->
         <item name="android:statusBarColor">@color/background_beige</item>
         <item name="android:windowLightStatusBar">true</item>
 
-        <!-- Navigation bar -->
         <item name="android:navigationBarColor">@color/background_beige</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">true</item>
 
-        <!-- Bottom Navigation -->
+        <!-- Component defaults -->
+        <item name="materialButtonStyle">@style/Widget.TasteClub.PrimaryButton</item>
+        <item name="textInputStyle">@style/Widget.TasteClub.TextInputLayout</item>
         <item name="bottomNavigationStyle">@style/Widget.TasteClub.BottomNavigationView</item>
+
     </style>
 
-    <!-- Bottom Navigation custom style -->
-    <style name="Widget.TasteClub.BottomNavigationView" parent="Widget.Material3.BottomNavigationView">
-        <item name="materialThemeOverlay">@style/ThemeOverlay.TasteClub.BottomNavigationView</item>
-        <item name="itemRippleColor">@color/primary_brown</item>
-    </style>
-
-    <style name="ThemeOverlay.TasteClub.BottomNavigationView" parent="">
-        <item name="colorPrimary">@color/primary_brown</item>
-        <item name="colorOnSurface">@color/text_secondary</item>
-    </style>
-
-    <!-- Typography Styles -->
-    <style name="TextAppearance.TasteClub.Headline1" parent="TextAppearance.Material3.HeadlineLarge">
-        <item name="android:textColor">@color/text_primary</item>
-        <item name="android:fontFamily">sans-serif-medium</item>
-    </style>
-
-    <style name="TextAppearance.TasteClub.Body1" parent="TextAppearance.Material3.BodyMedium">
-        <item name="android:textColor">@color/text_primary</item>
-    </style>
-
+    <!-- App theme -->
     <style name="Theme.TasteClub" parent="Base.Theme.TasteClub" />
+
 </resources>
