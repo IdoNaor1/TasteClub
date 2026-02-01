@@ -1,8 +1,9 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.navigation.safeargs)
     id("com.google.gms.google-services")
-    id("androidx.navigation.safeargs.kotlin")
+    id("kotlin-kapt")
 }
 
 android {
@@ -52,6 +53,13 @@ dependencies {
     implementation("androidx.navigation:navigation-ui-ktx:2.9.0")
 
 
-    implementation(platform("com.google.firebase:firebase-bom:34.8.0"))
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    kapt("androidx.room:room-compiler:2.6.1")
+
+    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.storage)
+    implementation(platform(libs.firebase.bom))
 
 }
