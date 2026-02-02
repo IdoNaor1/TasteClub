@@ -48,7 +48,7 @@ class FeedFragment : Fragment() {
                 when (state) {
                     is AuthState.Success -> {
                         Toast.makeText(requireContext(), state.message ?: "Logged out", Toast.LENGTH_SHORT).show()
-                        findNavController().navigate(R.id.loginFragment)
+                        findNavController().navigate(R.id.action_global_login)
                     }
                     is AuthState.Error -> {
                         Toast.makeText(requireContext(), state.message, Toast.LENGTH_SHORT).show()

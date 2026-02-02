@@ -48,7 +48,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
         val forgotPasswordButton = requireView().findViewById<View>(R.id.forgotPasswordButton)
         val signUpButton = requireView().findViewById<View>(R.id.signUpButton)
 
-        // ניקוי שגיאות בזמן הקלדה
+        // error cleaning while typing
         emailEditText.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) emailLayout.error = null
         }
@@ -85,8 +85,6 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
         }
 
         signUpButton.setOnClickListener {
-            // החלף ליעד/אקשן שקיים אצלך ב-nav_graph
-            // findNavController().navigate(R.id.action_loginFragment_to_registerFragment)
             findNavController().navigate(R.id.registerFragment)
         }
     }
@@ -107,18 +105,18 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                         is AuthState.Success -> {
                             setUiEnabled(true)
 
-                            // אופציונלי: הודעה
+                            // optional
                             state.message?.let {
                                 Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
                             }
 
-                            // ניווט לפיד (קיים אצלך לפי מה שעשית בספלאש)
-                            findNavController().navigate(R.id.feedFragment) {
-                                // לא לאפשר Back ל-login
-                                popUpTo(R.id.loginFragment) { inclusive = true }
-                            }
+                            // Navigation is handled centrally in MainActivity
+                            // findNavController().navigate(R.id.feedFragment) {
+                            //     // disable going back to login
+                            //     popUpTo(R.id.loginFragment) { inclusive = true }
+                            // }
 
-                            viewModel.resetToIdle()
+                            // viewModel.resetToIdle()
                         }
 
                         is AuthState.Error -> {
@@ -147,7 +145,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
             passwordLayout.error = getString(R.string.error_password_required)
             valid = false
         } else if (password.length < 6) {
-            // תתאים לכלל שאתם רוצים
+            // rules to be enforced
             passwordLayout.error = getString(R.string.error_password_too_short)
             valid = false
         }
@@ -156,7 +154,6 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
     }
 
     private fun showError(message: String) {
-        // אפשר לשפר: אם ההודעה קשורה ל-email/password – לשים בשדה הנכון
         Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
     }
 
@@ -166,7 +163,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
     }
 
     private fun setUiEnabled(enabled: Boolean) {
-        // כיבוי/הדלקה כדי למנוע דאבל קליקים בזמן Loading
+        // prevent double clicking while Loading
         emailEditText.isEnabled = enabled
         passwordEditText.isEnabled = enabled
         requireView().findViewById<View>(R.id.signInButton).isEnabled = enabled

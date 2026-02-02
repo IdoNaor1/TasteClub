@@ -8,6 +8,10 @@ import com.tasteclub.app.data.local.entity.toEntity
 import com.tasteclub.app.data.model.User
 import com.tasteclub.app.data.remote.firebase.FirebaseAuthSource
 import com.tasteclub.app.data.remote.firebase.FirestoreSource
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 
 class AuthRepository(
     private val authSource: FirebaseAuthSource,
@@ -107,5 +111,17 @@ class AuthRepository(
 
     suspend fun sendPasswordReset(email: String) {
         authSource.sendPasswordReset(email)
+    }
+
+    /**
+     * Observe authentication state changes.
+     * Emits true if user is logged in, false otherwise.
+     */
+    fun observeAuthState(): Flow<Boolean> = callbackFlow {
+        val listener = FirebaseAuth.AuthStateListener { auth ->
+            trySend(auth.currentUser != null)
+        }
+        FirebaseAuth.getInstance().addAuthStateListener(listener)
+        awaitClose { FirebaseAuth.getInstance().removeAuthStateListener(listener) }
     }
 }
