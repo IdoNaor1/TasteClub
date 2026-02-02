@@ -29,5 +29,10 @@
     <string name="login_subtitle">Discover and share great food experiences!</string>
     <string name="no_account">Don\'t have an account?</string>
 
+    <!-- Error Messages -->
+    <string name="error_email_required">Email is required</string>
+    <string name="error_email_invalid">Invalid email format</string>
+    <string name="error_password_required">Password is required</string>
+    <string name="error_password_too_short">Password must be at least 6 characters</string>
 
 </resources>

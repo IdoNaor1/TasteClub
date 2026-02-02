@@ -14,7 +14,7 @@ import android.util.Patterns
 sealed class AuthState {
     object Idle : AuthState()
     object Loading : AuthState()
-    object Success : AuthState()
+    data class Success(val message: String? = null) : AuthState()
     data class Error(val message: String) : AuthState()
 }
 
@@ -43,7 +43,7 @@ class AuthViewModel(private val authRepository: AuthRepository) : ViewModel() {
             try {
                 val user = authRepository.login(email, password)
                 if (user != null) {
-                    _authState.value = AuthState.Success
+                    _authState.value = AuthState.Success()
                 } else {
                     _authState.value = AuthState.Error("Login failed: User not found")
                 }
@@ -77,7 +77,7 @@ class AuthViewModel(private val authRepository: AuthRepository) : ViewModel() {
             _authState.value = AuthState.Loading
             try {
                 authRepository.register(email, password, displayName)
-                _authState.value = AuthState.Success
+                _authState.value = AuthState.Success()
             } catch (e: Exception) {
                 _authState.value = AuthState.Error(e.message ?: "An unknown error occurred")
             }
@@ -98,9 +98,24 @@ class AuthViewModel(private val authRepository: AuthRepository) : ViewModel() {
             _authState.value = AuthState.Loading
             try {
                 authRepository.sendPasswordReset(email)
-                _authState.value = AuthState.Success
+                _authState.value = AuthState.Success()
             } catch (e: Exception) {
                 _authState.value = AuthState.Error(e.message ?: "An unknown error occurred")
+            }
+        }
+    }
+
+    /**
+     * Handles user logout.
+     */
+    fun logout() {
+        viewModelScope.launch {
+            _authState.value = AuthState.Loading
+            try {
+                authRepository.logout()
+                _authState.value = AuthState.Success("Logged out successfully")
+            } catch (e: Exception) {
+                _authState.value = AuthState.Error(e.message ?: "Logout failed")
             }
         }
     }
@@ -112,6 +127,8 @@ class AuthViewModel(private val authRepository: AuthRepository) : ViewModel() {
     fun resetAuthState() {
         _authState.value = AuthState.Idle
     }
+
+    fun resetToIdle() = resetAuthState()
 
     /**
      * Validates the email format.
