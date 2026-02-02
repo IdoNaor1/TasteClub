@@ -39,14 +39,14 @@ class AuthRepository(
      * 3) Save to Firestore
      * 4) Cache to Room
      */
-    suspend fun register(email: String, password: String, displayName: String): User {
+    suspend fun register(email: String, password: String, userName: String): User {
         val uid = authSource.register(email, password)
 
         val now = System.currentTimeMillis()
         val user = User(
             uid = uid,
             email = email,
-            displayName = displayName,
+            userName = userName,
             profileImageUrl = "",
             bio = "",
             followersCount = 0,
@@ -89,13 +89,13 @@ class AuthRepository(
      */
     suspend fun updateProfile(
         uid: String,
-        displayName: String? = null,
+        userName: String? = null,
         bio: String? = null,
         profileImageUrl: String? = null
     ) {
         firestoreSource.updateUserProfile(
             uid = uid,
-            displayName = displayName,
+            userName = userName,
             bio = bio,
             profileImageUrl = profileImageUrl
         )

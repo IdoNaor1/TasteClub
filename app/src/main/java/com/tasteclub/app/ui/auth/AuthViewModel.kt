@@ -57,9 +57,9 @@ class AuthViewModel(private val authRepository: AuthRepository) : ViewModel() {
      * Handles new user registration.
      * @param email The user's email.
      * @param password The user's password.
-     * @param displayName The user's display name.
+     * @param userName The user's display name.
      */
-    fun register(email: String, password: String, displayName: String) {
+    fun register(email: String, password: String, userName: String) {
         if (!isValidEmail(email)) {
             _authState.value = AuthState.Error("Invalid email format")
             return
@@ -68,7 +68,7 @@ class AuthViewModel(private val authRepository: AuthRepository) : ViewModel() {
             _authState.value = AuthState.Error("Password must be at least 6 characters long")
             return
         }
-        if (displayName.isBlank()) {
+        if (userName.isBlank()) {
             _authState.value = AuthState.Error("Display name cannot be empty")
             return
         }
@@ -76,7 +76,7 @@ class AuthViewModel(private val authRepository: AuthRepository) : ViewModel() {
         viewModelScope.launch {
             _authState.value = AuthState.Loading
             try {
-                authRepository.register(email, password, displayName)
+                authRepository.register(email, password, userName)
                 _authState.value = AuthState.Success()
             } catch (e: Exception) {
                 _authState.value = AuthState.Error(e.message ?: "An unknown error occurred")

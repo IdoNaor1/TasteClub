@@ -3,7 +3,7 @@ package com.tasteclub.app.data.model
 data class User(
     val uid: String = "",
     val email: String = "",
-    val displayName: String = "",
+    val userName: String = "",
     val profileImageUrl: String = "",
     val bio: String = "",
 
