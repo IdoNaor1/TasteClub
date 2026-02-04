@@ -102,27 +102,29 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                             setUiEnabled(false)
                         }
 
-                        is AuthState.Success -> {
-                            setUiEnabled(true)
-
-                            // optional
-                            state.message?.let {
-                                Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
-                            }
-
-                            // Navigation is handled centrally in MainActivity
-                            // findNavController().navigate(R.id.feedFragment) {
-                            //     // disable going back to login
-                            //     popUpTo(R.id.loginFragment) { inclusive = true }
-                            // }
-
-                            // viewModel.resetToIdle()
-                        }
-
                         is AuthState.Error -> {
                             setUiEnabled(true)
                             showError(state.message)
                             viewModel.resetToIdle()
+                        }
+                        is AuthState.Success -> {
+                            setUiEnabled(true)
+                            state.message.let {
+                                Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Observe navigation events
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.authNavigationEvent.collect { event ->
+                    when (event) {
+                        is AuthNavigationEvent.NavigateToMain -> {
+                            findNavController().navigate(R.id.action_login_to_feed)
                         }
                     }
                 }

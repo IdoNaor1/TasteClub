@@ -87,7 +87,7 @@ class RegisterFragment : Fragment(R.layout.fragment_register) {
         }
 
         backToLoginButton.setOnClickListener {
-            findNavController().navigate(R.id.loginFragment)
+            findNavController().popBackStack()
         }
     }
 
@@ -104,20 +104,30 @@ class RegisterFragment : Fragment(R.layout.fragment_register) {
                             setUiEnabled(false)
                         }
 
-                        is AuthState.Success -> {
-                            setUiEnabled(true)
-
-                            state.message?.let {
-                                Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
-                            }
-
-                            // Navigation handled centrally in MainActivity
-                        }
-
                         is AuthState.Error -> {
                             setUiEnabled(true)
                             showError(state.message)
                             viewModel.resetToIdle()
+                        }
+                        is AuthState.Success -> {
+                            setUiEnabled(true)
+                            state.message.let {
+                                Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Observe navigation events
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.authNavigationEvent.collect { event ->
+                    when (event) {
+                        is AuthNavigationEvent.NavigateToMain -> {
+                            // It's now safe to navigate
+                            findNavController().navigate(R.id.action_register_to_feed)
                         }
                     }
                 }

@@ -1,5 +1,6 @@
 package com.tasteclub.app.data.remote.firebase
 
+import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.tasteclub.app.data.model.Restaurant
@@ -36,6 +37,8 @@ class FirestoreSource(
      * We keep timestamps consistent.
      */
     suspend fun upsertUser(user: User) {
+        Log.d("FirestoreDebugging", "upsertUser called for UID: ${user.uid}")
+
         val now = nowMillis()
         val uid = user.uid
         require(uid.isNotBlank()) { "User uid must not be blank" }
@@ -52,7 +55,9 @@ class FirestoreSource(
             lastUpdated = now
         )
 
+        Log.d("FirestoreDebugging", "Attempting to write to Firestore for UID: $uid")
         usersCol.document(uid).set(updated).await()
+        Log.d("FirestoreDebugging", "Successfully wrote to Firestore for UID: $uid")
     }
 
     /**
@@ -243,5 +248,3 @@ class FirestoreSource(
 
     private fun nowMillis(): Long = System.currentTimeMillis()
 }
-
-

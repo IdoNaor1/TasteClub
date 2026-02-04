@@ -167,13 +167,11 @@ class MainActivity : AppCompatActivity() {
                     // Skip the initial emission
                     skipInitialAuthState = false
                 } else {
-                    if (isLoggedIn) {
-                        // Navigate to feed using global action
-                        navController.navigate(R.id.action_global_feed)
-                    } else {
+                    if (!isLoggedIn) {
                         // Navigate to login using global action
                         navController.navigate(R.id.action_global_login)
                     }
+                    // Do not navigate on login; let the login/register fragments handle it
                 }
             }
         }

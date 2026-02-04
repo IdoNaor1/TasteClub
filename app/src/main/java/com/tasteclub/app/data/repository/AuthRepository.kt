@@ -39,26 +39,36 @@ class AuthRepository(
      * 3) Save to Firestore
      * 4) Cache to Room
      */
-    suspend fun register(email: String, password: String, userName: String): User {
-        val uid = authSource.register(email, password)
+    suspend fun register(email: String, password: String, userName: String): Result<User> {
+        android.util.Log.d("AuthRepository", "Register function called")
+        return try {
+            android.util.Log.d("AuthRepository", "Calling authSource.register")
+            val uid = authSource.register(email, password)
+            android.util.Log.d("AuthRepository", "authSource.register returned UID: $uid")
 
-        val now = System.currentTimeMillis()
-        val user = User(
-            uid = uid,
-            email = email,
-            userName = userName,
-            profileImageUrl = "",
-            bio = "",
-            followersCount = 0,
-            followingCount = 0,
-            createdAt = now,
-            lastUpdated = now
-        )
+            val now = System.currentTimeMillis()
+            val user = User(
+                uid = uid,
+                email = email,
+                userName = userName,
+                profileImageUrl = "",
+                bio = "",
+                followersCount = 0,
+                followingCount = 0,
+                createdAt = now,
+                lastUpdated = now
+            )
 
-        firestoreSource.upsertUser(user)
-        userDao.upsert(user.toEntity())
+            android.util.Log.d("AuthRepository", "Calling firestoreSource.upsertUser")
+            firestoreSource.upsertUser(user)
+            android.util.Log.d("AuthRepository", "firestoreSource.upsertUser finished")
+            userDao.upsert(user.toEntity())
 
-        return user
+            Result.success(user)
+        } catch (e: Exception) {
+            android.util.Log.e("AuthRepository", "Registration failed with exception", e)
+            Result.failure(e)
+        }
     }
 
     /**

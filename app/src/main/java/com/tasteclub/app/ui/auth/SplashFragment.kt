@@ -24,9 +24,13 @@ class SplashFragment : Fragment(R.layout.fragment_splash) {
             if (navController.currentDestination?.id != R.id.splashFragment) return@launch
 
             val action = if (authRepo.isLoggedIn()) {
-                // optional: pull to local cache
-                authRepo.currentUserId()?.let { authRepo.refreshUserFromRemote(it) }
-                R.id.action_splash_to_feed
+                // Pull to local cache and check if profile exists
+                val user = authRepo.currentUserId()?.let { authRepo.refreshUserFromRemote(it) }
+                if (user != null) {
+                    R.id.action_splash_to_feed
+                } else {
+                    R.id.action_splash_to_login
+                }
             } else {
                 R.id.action_splash_to_login
             }
@@ -35,6 +39,3 @@ class SplashFragment : Fragment(R.layout.fragment_splash) {
         }
     }
 }
-
-
-

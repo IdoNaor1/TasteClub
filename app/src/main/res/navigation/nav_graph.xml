@@ -7,11 +7,6 @@
 
     <!-- Global actions for auth state navigation -->
     <action
-        android:id="@+id/action_global_feed"
-        app:destination="@id/feedFragment"
-        app:popUpTo="@id/nav_graph"
-        app:popUpToInclusive="true" />
-    <action
         android:id="@+id/action_global_login"
         app:destination="@id/loginFragment"
         app:popUpTo="@id/nav_graph"
