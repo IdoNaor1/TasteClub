@@ -5,6 +5,7 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
@@ -12,6 +13,8 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.tasteclub.app.databinding.ActivityMainBinding
+import com.tasteclub.app.util.ServiceLocator
+import kotlinx.coroutines.launch
 
 /**
  * MainActivity - Single activity container for TasteClub app
@@ -33,6 +36,9 @@ class MainActivity : AppCompatActivity() {
 
     // Bottom navigation view
     private lateinit var bottomNavigationView: BottomNavigationView
+
+    // Flag to skip initial auth state emission
+    private var skipInitialAuthState = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,6 +62,9 @@ class MainActivity : AppCompatActivity() {
 
         // Control bottom nav visibility
         controlBottomNavVisibility()
+
+        // Observe auth state for navigation
+        observeAuthState()
     }
 
     /**
@@ -142,6 +151,27 @@ class MainActivity : AppCompatActivity() {
                 else -> {
                     bottomNavigationView.visibility = View.GONE
                     binding.toolbar.visibility = View.VISIBLE
+                }
+            }
+        }
+    }
+
+    /**
+     * Observe authentication state and navigate accordingly
+     */
+    private fun observeAuthState() {
+        lifecycleScope.launch {
+            val repo = ServiceLocator.provideAuthRepository(this@MainActivity)
+            repo.observeAuthState().collect { isLoggedIn ->
+                if (skipInitialAuthState) {
+                    // Skip the initial emission
+                    skipInitialAuthState = false
+                } else {
+                    if (!isLoggedIn) {
+                        // Navigate to login using global action
+                        navController.navigate(R.id.action_global_login)
+                    }
+                    // Do not navigate on login; let the login/register fragments handle it
                 }
             }
         }

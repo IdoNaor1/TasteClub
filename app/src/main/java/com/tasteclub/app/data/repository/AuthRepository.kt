@@ -8,6 +8,10 @@ import com.tasteclub.app.data.local.entity.toEntity
 import com.tasteclub.app.data.model.User
 import com.tasteclub.app.data.remote.firebase.FirebaseAuthSource
 import com.tasteclub.app.data.remote.firebase.FirestoreSource
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 
 class AuthRepository(
     private val authSource: FirebaseAuthSource,
@@ -35,26 +39,36 @@ class AuthRepository(
      * 3) Save to Firestore
      * 4) Cache to Room
      */
-    suspend fun register(email: String, password: String, displayName: String): User {
-        val uid = authSource.register(email, password)
+    suspend fun register(email: String, password: String, userName: String): Result<User> {
+        android.util.Log.d("AuthRepository", "Register function called")
+        return try {
+            android.util.Log.d("AuthRepository", "Calling authSource.register")
+            val uid = authSource.register(email, password)
+            android.util.Log.d("AuthRepository", "authSource.register returned UID: $uid")
 
-        val now = System.currentTimeMillis()
-        val user = User(
-            uid = uid,
-            email = email,
-            displayName = displayName,
-            profileImageUrl = "",
-            bio = "",
-            followersCount = 0,
-            followingCount = 0,
-            createdAt = now,
-            lastUpdated = now
-        )
+            val now = System.currentTimeMillis()
+            val user = User(
+                uid = uid,
+                email = email,
+                userName = userName,
+                profileImageUrl = "",
+                bio = "",
+                followersCount = 0,
+                followingCount = 0,
+                createdAt = now,
+                lastUpdated = now
+            )
 
-        firestoreSource.upsertUser(user)
-        userDao.upsert(user.toEntity())
+            android.util.Log.d("AuthRepository", "Calling firestoreSource.upsertUser")
+            firestoreSource.upsertUser(user)
+            android.util.Log.d("AuthRepository", "firestoreSource.upsertUser finished")
+            userDao.upsert(user.toEntity())
 
-        return user
+            Result.success(user)
+        } catch (e: Exception) {
+            android.util.Log.e("AuthRepository", "Registration failed with exception", e)
+            Result.failure(e)
+        }
     }
 
     /**
@@ -85,13 +99,13 @@ class AuthRepository(
      */
     suspend fun updateProfile(
         uid: String,
-        displayName: String? = null,
+        userName: String? = null,
         bio: String? = null,
         profileImageUrl: String? = null
     ) {
         firestoreSource.updateUserProfile(
             uid = uid,
-            displayName = displayName,
+            userName = userName,
             bio = bio,
             profileImageUrl = profileImageUrl
         )
@@ -107,5 +121,17 @@ class AuthRepository(
 
     suspend fun sendPasswordReset(email: String) {
         authSource.sendPasswordReset(email)
+    }
+
+    /**
+     * Observe authentication state changes.
+     * Emits true if user is logged in, false otherwise.
+     */
+    fun observeAuthState(): Flow<Boolean> = callbackFlow {
+        val listener = FirebaseAuth.AuthStateListener { auth ->
+            trySend(auth.currentUser != null)
+        }
+        FirebaseAuth.getInstance().addAuthStateListener(listener)
+        awaitClose { FirebaseAuth.getInstance().removeAuthStateListener(listener) }
     }
 }

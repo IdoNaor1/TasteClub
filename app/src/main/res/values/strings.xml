@@ -5,7 +5,7 @@
     <!-- Navigation Labels -->
     <string name="login">Login</string>
     <string name="register">Sign Up</string>
-    <string name="forgot_password">Forgot Password</string>
+    <string name="forgot_password">Forgot Password?</string>
     <string name="feed">Feed</string>
     <string name="my_posts">My Posts</string>
     <string name="profile">Profile</string>
@@ -20,4 +20,29 @@
     <string name="nav_my_posts">My Posts</string>
     <string name="nav_profile">Profile</string>
     <string name="nav_discover">Discover</string>
+
+    <!-- Authentication -->
+    <string name="email">Email</string>
+    <string name="email_hint">Enter your email</string>
+    <string name="password">Password</string>
+    <string name="password_hint">Enter your password</string>
+    <string name="login_subtitle">Discover and share great food experiences!</string>
+    <string name="no_account">Don\'t have an account?</string>
+
+    <!-- Register -->
+    <string name="back_to_login">Back to Login</string>
+    <string name="register_title">Create An Account</string>
+    <string name="register_subtitle">Join TasteClub start reviewing!</string>
+    <string name="username">Username</string>
+    <string name="username_hint">Choose a username</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="confirm_password_hint">Re-enter your password</string>
+
+    <!-- Error Messages -->
+    <string name="error_email_required">Email is required</string>
+    <string name="error_email_invalid">Invalid email format</string>
+    <string name="error_username_required">Username is required</string>
+    <string name="error_password_required">Password is required</string>
+    <string name="error_password_too_short">Password must be at least 6 characters</string>
+    <string name="error_password_mismatch">Passwords do not match</string>
 </resources>
