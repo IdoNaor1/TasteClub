@@ -45,4 +45,19 @@
     <string name="error_password_required">Password is required</string>
     <string name="error_password_too_short">Password must be at least 6 characters</string>
     <string name="error_password_mismatch">Passwords do not match</string>
+
+    <!-- Feed & Review Card -->
+    <string name="user_avatar">User avatar</string>
+    <string name="restaurant_image">Restaurant image</string>
+    <string name="star_rating">Star rating</string>
+    <string name="rating_star">Rating star %1$d</string>
+    <string name="loading">Loading…</string>
+    <string name="pull_to_refresh">Pull to refresh</string>
+
+    <!-- Empty States -->
+    <string name="empty_feed_title">No Reviews Yet</string>
+    <string name="empty_feed_description">Be the first to share your dining experience with the community!</string>
+    <string name="write_a_review">Write a Review</string>
+    <string name="error_loading_feed">Failed to load reviews</string>
+    <string name="retry">Retry</string>
 </resources>
