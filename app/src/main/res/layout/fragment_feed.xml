@@ -53,16 +53,17 @@
         </LinearLayout>
     </FrameLayout>
 
-    <!-- Create Review FAB (Bottom Right) -->
+    <!-- Floating Action Button (Create Review) -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/createReviewFab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
-        android:src="@drawable/ic_add"
         android:contentDescription="@string/create_review"
+        app:srcCompat="@drawable/ic_plus"
+        app:tint="@color/white"
         app:backgroundTint="@color/primary_brown"
-        app:tint="@color/white" />
+        app:elevation="6dp" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
