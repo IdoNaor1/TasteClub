@@ -4,19 +4,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
 import com.tasteclub.app.R
 import com.tasteclub.app.data.model.Review
 import com.tasteclub.app.databinding.ItemReviewCardBinding
+import com.tasteclub.app.ui.common.ReviewDiffCallback
 import java.text.SimpleDateFormat
 import java.util.Locale
 
 /**
  * ReviewAdapter - Adapter for displaying review cards in RecyclerView
- * Uses ListAdapter with DiffUtil for efficient updates
+ * Uses ListAdapter with shared ReviewDiffCallback for efficient updates
  */
 class ReviewAdapter : ListAdapter<Review, ReviewAdapter.ReviewViewHolder>(ReviewDiffCallback()) {
 
@@ -109,20 +109,4 @@ class ReviewAdapter : ListAdapter<Review, ReviewAdapter.ReviewViewHolder>(Review
             }
         }
     }
-
-    /**
-     * DiffUtil callback for efficient list updates
-     */
-    private class ReviewDiffCallback : DiffUtil.ItemCallback<Review>() {
-        override fun areItemsTheSame(oldItem: Review, newItem: Review): Boolean {
-            // Compare unique identifiers
-            return oldItem.id == newItem.id
-        }
-
-        override fun areContentsTheSame(oldItem: Review, newItem: Review): Boolean {
-            // Compare all content
-            return oldItem == newItem
-        }
-    }
 }
-
