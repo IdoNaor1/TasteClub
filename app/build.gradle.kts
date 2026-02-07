@@ -63,4 +63,13 @@ dependencies {
     implementation(libs.firebase.storage)
     implementation(platform(libs.firebase.bom))
 
+    // CircleImageView for user avatars
+    implementation("de.hdodenhof:circleimageview:3.1.0")
+
+    // Picasso for image loading
+    implementation("com.squareup.picasso:picasso:2.8")
+
+    // SwipeRefreshLayout for pull-to-refresh
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+
 }
