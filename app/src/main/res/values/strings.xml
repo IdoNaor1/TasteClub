@@ -30,6 +30,9 @@
     <string name="no_account">Don\'t have an account?</string>
 
     <!-- Register -->
+    <string name="forgot_password_explanation">Enter your email address and we\'ll send you a link to reset your password"</string>
+
+    <!-- Register -->
     <string name="back_to_login">Back to Login</string>
     <string name="register_title">Create An Account</string>
     <string name="register_subtitle">Join TasteClub start reviewing!</string>
