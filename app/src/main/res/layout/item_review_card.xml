@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="16dp"
+    app:cardBackgroundColor="@color/surface_card"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="2dp">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/userAvatarImageView"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_user_placeholder"
+                android:contentDescription="@string/user_avatar"
+                app:civ_border_width="1dp"
+                app:civ_border_color="@color/text_secondary" />
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="12dp">
+                <TextView
+                    android:id="@+id/userNameTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    tools:text="John Doe" />
+                <TextView
+                    android:id="@+id/dateTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp"
+                    android:layout_marginTop="2dp"
+                    tools:text="2 hours ago" />
+            </LinearLayout>
+        </LinearLayout>
+        <ImageView
+            android:id="@+id/restaurantImageView"
+            android:layout_width="match_parent"
+            android:layout_height="192dp"
+            android:scaleType="centerCrop"
+            android:background="@color/surface_card"
+            android:src="@drawable/image_placeholder"
+            android:contentDescription="@string/restaurant_image"
+            android:layout_marginBottom="8dp" />
+        <TextView
+            android:id="@+id/restaurantNameTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/primary_brown"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp"
+            tools:text="The Golden Spoon" />
+        <TextView
+            android:id="@+id/restaurantAddressTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
+            android:layout_marginBottom="8dp"
+            tools:text="123 Main St, New York, NY" />
+        <LinearLayout
+            android:id="@+id/starRatingLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
+            <ImageView
+                android:id="@+id/star1ImageView"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_star_filled"
+                android:contentDescription="@string/rating_star"
+                android:layout_marginEnd="4dp" />
+            <ImageView
+                android:id="@+id/star2ImageView"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_star_filled"
+                android:contentDescription="@string/rating_star"
+                android:layout_marginEnd="4dp" />
+            <ImageView
+                android:id="@+id/star3ImageView"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_star_filled"
+                android:contentDescription="@string/rating_star"
+                android:layout_marginEnd="4dp" />
+            <ImageView
+                android:id="@+id/star4ImageView"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_star_filled"
+                android:contentDescription="@string/rating_star"
+                android:layout_marginEnd="4dp" />
+            <ImageView
+                android:id="@+id/star5ImageView"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_star_filled"
+                android:contentDescription="@string/rating_star" />
+        </LinearLayout>
+        <TextView
+            android:id="@+id/reviewTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_primary"
+            android:textSize="14sp"
+            android:lineSpacingMultiplier="1.2"
+            tools:text="This is an amazing restaurant with fantastic food and great service. Highly recommended for anyone looking for a memorable dining experience!" />
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>
