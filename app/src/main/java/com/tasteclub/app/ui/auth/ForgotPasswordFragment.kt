@@ -15,6 +15,7 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.tasteclub.app.R
 import com.tasteclub.app.util.ServiceLocator
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
@@ -95,9 +96,7 @@ class ForgotPasswordFragment : Fragment(R.layout.fragment_forgot_password) {
                         }
                         is AuthState.Success -> {
                             setUiEnabled(true)
-                            messageText.text = state.message
-                            messageText.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.holo_green_dark))
-                            messageText.visibility = View.VISIBLE
+                            // No message shown for success to avoid misleading users about email existence
                             viewModel.resetToIdle()
                         }
                         is AuthState.Error -> {
@@ -105,7 +104,11 @@ class ForgotPasswordFragment : Fragment(R.layout.fragment_forgot_password) {
                             messageText.text = state.message
                             messageText.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.holo_red_dark))
                             messageText.visibility = View.VISIBLE
-                            viewModel.resetToIdle()
+                            // Delay resetting to Idle to keep message visible
+                            viewLifecycleOwner.lifecycleScope.launch {
+                                delay(2000L) // 2 seconds
+                                viewModel.resetToIdle()
+                            }
                         }
                     }
                 }

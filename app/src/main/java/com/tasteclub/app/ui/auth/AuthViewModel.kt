@@ -9,6 +9,10 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import android.util.Patterns
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import android.util.Log
 
 /**
  * Represents the different states for the authentication UI.
@@ -128,8 +132,8 @@ class AuthViewModel(private val authRepository: AuthRepository) : ViewModel() {
     }
 
     /**
-     * Sends a password reset email to the specified user by validating the email and calling the repository.
-     * Updates the state to reflect success or failure.
+     * Sends a password reset email to the specified user by validating the email and using Firebase Auth directly.
+     * Updates the state to reflect success or failure with robust error handling.
      *
      * @param email The user's email address to send the reset email to.
      */
@@ -139,15 +143,31 @@ class AuthViewModel(private val authRepository: AuthRepository) : ViewModel() {
             return
         }
 
-        viewModelScope.launch {
-            _authState.value = AuthState.Loading
-            try {
-                authRepository.sendPasswordReset(email)
-                _authState.value = AuthState.Success("Password reset email sent")
-            } catch (e: Exception) {
-                _authState.value = AuthState.Error(e.message ?: "An unknown error occurred")
+        _authState.value = AuthState.Loading
+
+        val auth = FirebaseAuth.getInstance()
+        auth.sendPasswordResetEmail(email)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    _authState.value = AuthState.Success("If an account exists, a password reset email has been sent to your email address.")
+                } else {
+                    val exception = task.exception
+                    when (exception) {
+                        is FirebaseAuthInvalidUserException -> {
+                            _authState.value = AuthState.Error("No account found for this email address. Please check and try again.")
+                            Log.e("AuthViewModel", "FirebaseAuthInvalidUserException: ${exception.message}", exception)
+                        }
+                        is FirebaseAuthException -> {
+                            _authState.value = AuthState.Error("An unexpected error occurred. Please try again later.")
+                            Log.e("AuthViewModel", "FirebaseAuthException: ${exception.message}", exception)
+                        }
+                        else -> {
+                            _authState.value = AuthState.Error("An unexpected error occurred. Please try again later.")
+                            Log.e("AuthViewModel", "Exception: ${exception?.message}", exception)
+                        }
+                    }
+                }
             }
-        }
     }
 
     /**
