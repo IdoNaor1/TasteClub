@@ -69,19 +69,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
         }
 
         forgotPasswordButton.setOnClickListener {
-            clearFieldErrors()
-
-            val email = emailEditText.text?.toString().orEmpty().trim()
-            if (email.isBlank()) {
-                emailLayout.error = getString(R.string.error_email_required)
-                return@setOnClickListener
-            }
-            if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                emailLayout.error = getString(R.string.error_email_invalid)
-                return@setOnClickListener
-            }
-
-            viewModel.sendPasswordResetEmail(email)
+            findNavController().navigate(R.id.action_login_to_forgot_password)
         }
 
         signUpButton.setOnClickListener {
