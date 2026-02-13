@@ -5,6 +5,7 @@ import com.tasteclub.app.data.local.TasteClubDatabase
 import com.tasteclub.app.data.remote.firebase.FirebaseAuthSource
 import com.tasteclub.app.data.remote.firebase.FirebaseStorageSource
 import com.tasteclub.app.data.remote.firebase.FirestoreSource
+import com.tasteclub.app.data.remote.places.PlacesService
 import com.tasteclub.app.data.repository.AuthRepository
 import com.tasteclub.app.data.repository.ReviewRepository
 
@@ -27,6 +28,8 @@ object ServiceLocator {
 
     @Volatile
     private var reviewRepository: ReviewRepository? = null
+
+    private var placesService: PlacesService? = null
 
     // --------------------
     // Public API
@@ -77,6 +80,14 @@ object ServiceLocator {
     private fun provideStorageSource(): FirebaseStorageSource {
         return storageSource ?: synchronized(this) {
             storageSource ?: FirebaseStorageSource().also { storageSource = it }
+        }
+    }
+
+    fun providePlacesService(context: Context): PlacesService {
+        return placesService ?: synchronized(this) {
+            val instance = PlacesService(context.applicationContext)
+            placesService = instance
+            instance
         }
     }
 

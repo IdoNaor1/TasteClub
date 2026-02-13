@@ -68,7 +68,7 @@ class MainActivity : AppCompatActivity() {
         // Observe auth state for navigation
         observeAuthState()
 
-        initPlaces()
+        //initPlaces()
     }
 
     /**
