@@ -119,4 +119,17 @@
     <string name="personalized_suggestions">Personalized suggestions based on your tastes</string>
     <string name="save_preferences">Save Preferences</string>
     <string name="preferences_saved">Preferences saved</string>
+
+    <!-- Create Review -->
+    <string name="select_restaurant">Select Restaurant</string>
+    <string name="restaurant_name_placeholder">The Restaurant\'s Name</string>
+    <string name="restaurant_address_placeholder">The Restaurant\'s Address</string>
+    <string name="rating">Rating</string>
+    <string name="review_label">Your Review</string>
+    <string name="review_placeholder">Share your experience…</string>
+    <string name="add_photos">Add Photos (Optional)</string>
+    <string name="add_photos_tap">Tap to add photos</string>
+    <string name="post_review">Post Review"</string>
+
+
 </resources>

@@ -5,7 +5,6 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken
-import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.widget.PlaceAutocompleteActivity
 import com.tasteclub.app.data.remote.places.PlacesService
 
@@ -57,6 +56,7 @@ class CreateReviewFragment : Fragment() {
         val intent = placesService.createAutocompleteIntent(sessionToken)
         autocompleteLauncher.launch(intent)
     }
+
 }
 
 
