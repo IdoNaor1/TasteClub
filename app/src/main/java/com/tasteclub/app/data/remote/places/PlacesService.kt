@@ -74,20 +74,26 @@ class PlacesService(context: Context) {
     fun getSessionTokenFromIntent(data: Intent): AutocompleteSessionToken? =
         PlaceAutocomplete.getSessionTokenFromIntent(data)
 
-    /** * Fetch full place details using Coroutines.
+    /** * Fetch place details using Coroutines.
      * This 'awaits' the result without blocking the thread.
      */
     suspend fun getPlaceDetails(
         placeId: String,
-        sessionToken: AutocompleteSessionToken? = null
+        sessionToken: AutocompleteSessionToken? = null,
+        fullDetails: Boolean = false
     ): Place? {
-        val fields = listOf(
+        val fields = mutableListOf(
             Place.Field.ID,
-            Place.Field.DISPLAY_NAME,
-            Place.Field.PHOTO_METADATAS,
-            Place.Field.FORMATTED_ADDRESS,
-            Place.Field.PRIMARY_TYPE_DISPLAY_NAME
+            Place.Field.PHOTO_METADATAS
         )
+        if (fullDetails) {
+            fields.addAll(listOf(
+                Place.Field.DISPLAY_NAME,
+                Place.Field.FORMATTED_ADDRESS,
+                Place.Field.PRIMARY_TYPE_DISPLAY_NAME,
+                Place.Field.LAT_LNG
+            ))
+        }
 
         return try {
             val response = placesClient.awaitFetchPlace(placeId, fields){

@@ -34,7 +34,10 @@ class CreateReviewFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: ReviewViewModel by viewModels {
-        ReviewViewModelFactory(ServiceLocator.provideReviewRepository(requireContext()))
+        ReviewViewModelFactory(
+            ServiceLocator.provideReviewRepository(requireContext()),
+            ServiceLocator.providePlacesService(requireContext())
+        )
     }
 
     private lateinit var placesService: PlacesService
@@ -61,16 +64,15 @@ class CreateReviewFragment : Fragment() {
 
                 val placeId = prediction.placeId
 
-                // Launch coroutine to fetch place details
+                // Launch coroutine to fetch minimal place details
                 viewModel.viewModelScope.launch {
                     val place = placesService.getPlaceDetails(placeId, tokenFromIntent)
                     if (place != null) {
                         val restaurant = Restaurant(
                             id = place.id ?: "",
-                            name = place.displayName ?: "",
-                            address = place.formattedAddress ?: "",
-                            //photoUrl = place.photoMetadatas?.firstOrNull()?.let { it.photoReference } ?: "",
-                            categories = listOf(place.primaryTypeDisplayName ?: "")
+                            name = prediction.getFullText(null).toString(), // Use prediction for preview
+                            address = "", // Will fetch later if needed
+                            photoUrl = place.photoMetadatas?.firstOrNull()?.photoReference ?: ""
                         )
                         viewModel.setSelectedRestaurant(restaurant)
                     } else {

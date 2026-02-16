@@ -7,10 +7,12 @@ import androidx.lifecycle.viewModelScope
 import com.tasteclub.app.data.model.Restaurant
 import com.tasteclub.app.data.model.Review
 import com.tasteclub.app.data.repository.ReviewRepository
+import com.tasteclub.app.data.remote.places.PlacesService
 import kotlinx.coroutines.launch
 
 class ReviewViewModel(
-    private val reviewRepository: ReviewRepository
+    private val reviewRepository: ReviewRepository,
+    private val placesService: PlacesService
 ) : ViewModel() {
 
     // Form data
@@ -55,10 +57,26 @@ class ReviewViewModel(
         _isCreating.value = true
         viewModelScope.launch {
             try {
+                var finalRestaurant = restaurant
+                if (restaurant.address.isEmpty()) {
+                    // Fetch full place details
+                    val place = placesService.getPlaceDetails(restaurant.id, fullDetails = true)
+                    if (place != null) {
+                        finalRestaurant = restaurant.copy(
+                            name = place.displayName ?: restaurant.name,
+                            address = place.formattedAddress ?: "",
+                            lat = place.latLng?.latitude ?: 0.0,
+                            lng = place.latLng?.longitude ?: 0.0,
+                            photoUrl = place.photoMetadatas?.firstOrNull()?.photoReference ?: restaurant.photoUrl,
+                            categories = listOf(place.primaryTypeDisplayName ?: "")
+                        )
+                        _selectedRestaurant.value = finalRestaurant // Update the live data
+                    }
+                }
                 val review = Review(
-                    restaurantId = restaurant.id,
-                    restaurantName = restaurant.name,
-                    restaurantAddress = restaurant.address,
+                    restaurantId = finalRestaurant.id,
+                    restaurantName = finalRestaurant.name,
+                    restaurantAddress = finalRestaurant.address,
                     rating = rating.toInt(),
                     text = text
                 )
