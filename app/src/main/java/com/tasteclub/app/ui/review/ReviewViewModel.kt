@@ -9,6 +9,8 @@ import com.tasteclub.app.data.model.Review
 import com.tasteclub.app.data.repository.ReviewRepository
 import com.tasteclub.app.data.repository.RestaurantRepository
 import com.tasteclub.app.data.remote.places.PlacesService
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.api.model.AddressComponent
 import kotlinx.coroutines.launch
 
 class ReviewViewModel(
@@ -66,9 +68,11 @@ class ReviewViewModel(
                     if (place != null) {
                         finalRestaurant = Restaurant(
                             id = restaurantId,
-                            name = place.displayName?: "",
-                            address = place.formattedAddress ?: "",
-                            photoUrl = place.photoMetadatas?.firstOrNull()?.photoReference ?: "",
+                            name = place.displayName ?: "",
+                            addressComponents = place.addressComponents,
+                            lat = place.location?.latitude ?: 0.0,
+                            lng = place.location?.longitude ?: 0.0,
+                            photoUrl = "",
                             categories = listOf(place.primaryTypeDisplayName ?: "")
                         )
                         restaurantRepository.upsertRestaurant(finalRestaurant)
@@ -77,7 +81,7 @@ class ReviewViewModel(
                 val review = Review(
                     restaurantId = finalRestaurant?.id ?: "",
                     restaurantName = finalRestaurant?.name ?: "",
-                    restaurantAddress = finalRestaurant?.address ?: "",
+                    restaurantAddress = finalRestaurant?.addressComponents?.joinToString(", ") { it.name } ?: "",
                     rating = rating.toInt(),
                     text = text
                 )

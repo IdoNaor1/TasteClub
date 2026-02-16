@@ -213,21 +213,12 @@ class FirestoreSource(
         return snap.toObject(Restaurant::class.java)
     }
 
-    /**
-     * For restaurants, you might store minimal cached info (id, name, address...).
-     * Google Places will still be your "source" for search/details.
-     */
     suspend fun upsertRestaurant(restaurant: Restaurant) {
         val now = nowMillis()
         val id = restaurant.id
         require(id.isNotBlank()) { "Restaurant id must not be blank" }
 
-        val existing = restaurantsCol.document(id).get().await()
-        val createdAt = if (existing.exists()) {
-            restaurant.createdAt.takeIf { it > 0 } ?: existing.getLong("createdAt") ?: now
-        } else {
-            now
-        }
+        val createdAt = restaurant.createdAt.takeIf { it > 0 } ?: now
 
         val updated = restaurant.copy(
             createdAt = createdAt,

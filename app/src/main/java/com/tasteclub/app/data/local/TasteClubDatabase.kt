@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import com.tasteclub.app.data.local.dao.ReviewDao
 import com.tasteclub.app.data.local.dao.UserDao
 import com.tasteclub.app.data.local.dao.RestaurantDao
@@ -16,6 +17,7 @@ import com.tasteclub.app.data.local.entity.RestaurantEntity
     version = 1,
     exportSchema = false
 )
+@TypeConverters(Converters::class)
 abstract class TasteClubDatabase : RoomDatabase() {
 
     abstract fun userDao(): UserDao

@@ -77,4 +77,7 @@ dependencies {
     // Places and Maps SDKs
     implementation("com.google.android.libraries.places:places:5.0.0")
     implementation("com.google.android.gms:play-services-location:21.0.1")
+
+    // Gson for JSON serialization
+    implementation(libs.gson)
 }
