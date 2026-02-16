@@ -7,17 +7,19 @@ import androidx.lifecycle.viewModelScope
 import com.tasteclub.app.data.model.Restaurant
 import com.tasteclub.app.data.model.Review
 import com.tasteclub.app.data.repository.ReviewRepository
+import com.tasteclub.app.data.repository.RestaurantRepository
 import com.tasteclub.app.data.remote.places.PlacesService
 import kotlinx.coroutines.launch
 
 class ReviewViewModel(
     private val reviewRepository: ReviewRepository,
+    private val restaurantRepository: RestaurantRepository,
     private val placesService: PlacesService
 ) : ViewModel() {
 
     // Form data
-    private val _selectedRestaurant = MutableLiveData<Restaurant?>()
-    val selectedRestaurant: LiveData<Restaurant?> = _selectedRestaurant
+    private val _selectedRestaurantId = MutableLiveData<String?>()
+    val selectedRestaurantId: LiveData<String?> = _selectedRestaurantId
 
     private val _rating = MutableLiveData<Float>(0f)
     val rating: LiveData<Float> = _rating
@@ -32,8 +34,8 @@ class ReviewViewModel(
     private val _createResult = MutableLiveData<Result<Review>?>()
     val createResult: LiveData<Result<Review>?> = _createResult
 
-    fun setSelectedRestaurant(restaurant: Restaurant) {
-        _selectedRestaurant.value = restaurant
+    fun setSelectedRestaurantId(restaurantId: String) {
+        _selectedRestaurantId.value = restaurantId
     }
 
     fun setRating(rating: Float) {
@@ -45,11 +47,11 @@ class ReviewViewModel(
     }
 
     fun createReview() {
-        val restaurant = _selectedRestaurant.value
+        val restaurantId = _selectedRestaurantId.value
         val rating = _rating.value ?: 0f
         val text = _reviewText.value ?: ""
 
-        if (restaurant == null || rating == 0f || text.isBlank()) {
+        if (restaurantId == null || rating == 0f || text.isBlank()) {
             _createResult.value = Result.failure(Exception("Please fill all fields"))
             return
         }
@@ -57,26 +59,25 @@ class ReviewViewModel(
         _isCreating.value = true
         viewModelScope.launch {
             try {
-                var finalRestaurant = restaurant
-                if (restaurant.address.isEmpty()) {
+                var finalRestaurant = restaurantRepository.getRestaurantById(restaurantId)
+                if (finalRestaurant == null) {
                     // Fetch full place details
-                    val place = placesService.getPlaceDetails(restaurant.id, fullDetails = true)
+                    val place = placesService.getPlaceDetails(restaurantId)
                     if (place != null) {
-                        finalRestaurant = restaurant.copy(
-                            name = place.displayName ?: restaurant.name,
+                        finalRestaurant = Restaurant(
+                            id = restaurantId,
+                            name = place.displayName?: "",
                             address = place.formattedAddress ?: "",
-                            lat = place.latLng?.latitude ?: 0.0,
-                            lng = place.latLng?.longitude ?: 0.0,
-                            photoUrl = place.photoMetadatas?.firstOrNull()?.photoReference ?: restaurant.photoUrl,
+                            photoUrl = place.photoMetadatas?.firstOrNull()?.photoReference ?: "",
                             categories = listOf(place.primaryTypeDisplayName ?: "")
                         )
-                        _selectedRestaurant.value = finalRestaurant // Update the live data
+                        restaurantRepository.upsertRestaurant(finalRestaurant)
                     }
                 }
                 val review = Review(
-                    restaurantId = finalRestaurant.id,
-                    restaurantName = finalRestaurant.name,
-                    restaurantAddress = finalRestaurant.address,
+                    restaurantId = finalRestaurant?.id ?: "",
+                    restaurantName = finalRestaurant?.name ?: "",
+                    restaurantAddress = finalRestaurant?.address ?: "",
                     rating = rating.toInt(),
                     text = text
                 )

@@ -8,6 +8,7 @@ import com.tasteclub.app.data.remote.firebase.FirestoreSource
 import com.tasteclub.app.data.remote.places.PlacesService
 import com.tasteclub.app.data.repository.AuthRepository
 import com.tasteclub.app.data.repository.ReviewRepository
+import com.tasteclub.app.data.repository.RestaurantRepository
 
 object ServiceLocator {
 
@@ -28,6 +29,9 @@ object ServiceLocator {
 
     @Volatile
     private var reviewRepository: ReviewRepository? = null
+
+    @Volatile
+    private var restaurantRepository: RestaurantRepository? = null
 
     private var placesService: PlacesService? = null
 
@@ -52,6 +56,15 @@ object ServiceLocator {
                 storageSource = provideStorageSource(),
                 reviewDao = provideDatabase(context).reviewDao()
             ).also { reviewRepository = it }
+        }
+    }
+
+    fun provideRestaurantRepository(context: Context): RestaurantRepository {
+        return restaurantRepository ?: synchronized(this) {
+            restaurantRepository ?: RestaurantRepository(
+                firestoreSource = provideFirestoreSource(),
+                restaurantDao = provideDatabase(context).restaurantDao()
+            ).also { restaurantRepository = it }
         }
     }
 
@@ -97,10 +110,10 @@ object ServiceLocator {
     fun resetForTesting() {
         authRepository = null
         reviewRepository = null
+        restaurantRepository = null
         authSource = null
         firestoreSource = null
         storageSource = null
         database = null
     }
 }
-

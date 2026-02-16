@@ -36,6 +36,7 @@ class CreateReviewFragment : Fragment() {
     private val viewModel: ReviewViewModel by viewModels {
         ReviewViewModelFactory(
             ServiceLocator.provideReviewRepository(requireContext()),
+            ServiceLocator.provideRestaurantRepository(requireContext()),
             ServiceLocator.providePlacesService(requireContext())
         )
     }
@@ -60,25 +61,14 @@ class CreateReviewFragment : Fragment() {
 
                 val prediction = placesService.getPredictionFromIntent(data) ?: return@registerForActivityResult
 
-                val tokenFromIntent = placesService.getSessionTokenFromIntent(data)
-
                 val placeId = prediction.placeId
 
-                // Launch coroutine to fetch minimal place details
-                viewModel.viewModelScope.launch {
-                    val place = placesService.getPlaceDetails(placeId, tokenFromIntent)
-                    if (place != null) {
-                        val restaurant = Restaurant(
-                            id = place.id ?: "",
-                            name = prediction.getFullText(null).toString(), // Use prediction for preview
-                            address = "", // Will fetch later if needed
-                            photoUrl = place.photoMetadatas?.firstOrNull()?.photoReference ?: ""
-                        )
-                        viewModel.setSelectedRestaurant(restaurant)
-                    } else {
-                        Toast.makeText(requireContext(), "Fetch details failed", Toast.LENGTH_SHORT).show()
-                    }
-                }
+                val placeName = prediction.getPrimaryText(null).toString()
+                val placeAddress = prediction.getSecondaryText(null).toString()
+
+                binding.changeText.text = "$placeName, $placeAddress"
+
+                viewModel.setSelectedRestaurantId(placeId)
 
             } else if (result.resultCode == PlaceAutocompleteActivity.RESULT_ERROR) {
                 val data = result.data ?: return@registerForActivityResult
@@ -139,14 +129,10 @@ class CreateReviewFragment : Fragment() {
     }
 
     private fun setupObservers() {
-        viewModel.selectedRestaurant.observe(viewLifecycleOwner, Observer { restaurant ->
-            if (restaurant != null) {
-                binding.restaurantName.text = restaurant.name
-                binding.restaurantAddress.text = restaurant.address
+        viewModel.selectedRestaurantId.observe(viewLifecycleOwner, Observer { restaurantId ->
+            if (restaurantId != null) {
                 binding.changeText.text = getString(com.tasteclub.app.R.string.change_restaurant)
             } else {
-                binding.restaurantName.text = getString(com.tasteclub.app.R.string.restaurant_name_placeholder)
-                binding.restaurantAddress.text = getString(com.tasteclub.app.R.string.restaurant_address_placeholder)
                 binding.changeText.text = getString(com.tasteclub.app.R.string.select_restaurant)
             }
         })

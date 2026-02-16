@@ -6,11 +6,13 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.tasteclub.app.data.local.dao.ReviewDao
 import com.tasteclub.app.data.local.dao.UserDao
+import com.tasteclub.app.data.local.dao.RestaurantDao
 import com.tasteclub.app.data.local.entity.ReviewEntity
 import com.tasteclub.app.data.local.entity.UserEntity
+import com.tasteclub.app.data.local.entity.RestaurantEntity
 
 @Database(
-    entities = [UserEntity::class, ReviewEntity::class],
+    entities = [UserEntity::class, ReviewEntity::class, RestaurantEntity::class],
     version = 1,
     exportSchema = false
 )
@@ -18,6 +20,7 @@ abstract class TasteClubDatabase : RoomDatabase() {
 
     abstract fun userDao(): UserDao
     abstract fun reviewDao(): ReviewDao
+    abstract fun restaurantDao(): RestaurantDao
 
     companion object {
         @Volatile

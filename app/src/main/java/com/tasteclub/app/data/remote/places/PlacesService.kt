@@ -11,11 +11,9 @@ import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.model.RectangularBounds
 import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.PlacesClient
-import com.google.android.libraries.places.api.net.kotlin.awaitFetchPlace
-import com.google.android.libraries.places.widget.Autocomplete
 import com.google.android.libraries.places.widget.PlaceAutocomplete
-import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import com.tasteclub.app.BuildConfig
+import kotlinx.coroutines.tasks.await
 
 
 class PlacesService(context: Context) {
@@ -42,8 +40,10 @@ class PlacesService(context: Context) {
         // Create a roughly 5-10km box around the user
         val biasRange = 0.05 // approx 5km in degrees
 
-        val southWest = LatLng(currentLocation.latitude - biasRange, currentLocation.longitude - biasRange)
-        val northEast = LatLng(currentLocation.latitude + biasRange, currentLocation.longitude + biasRange)
+        val southWest =
+            LatLng(currentLocation.latitude - biasRange, currentLocation.longitude - biasRange)
+        val northEast =
+            LatLng(currentLocation.latitude + biasRange, currentLocation.longitude + biasRange)
 
         return RectangularBounds.newInstance(southWest, northEast)
     }
@@ -71,36 +71,24 @@ class PlacesService(context: Context) {
     fun getResultStatusFromIntent(data: Intent): Status? =
         PlaceAutocomplete.getResultStatusFromIntent(data)
 
-    fun getSessionTokenFromIntent(data: Intent): AutocompleteSessionToken? =
-        PlaceAutocomplete.getSessionTokenFromIntent(data)
-
-    /** * Fetch place details using Coroutines.
-     * This 'awaits' the result without blocking the thread.
-     */
     suspend fun getPlaceDetails(
         placeId: String,
         sessionToken: AutocompleteSessionToken? = null,
-        fullDetails: Boolean = false
     ): Place? {
         val fields = mutableListOf(
             Place.Field.ID,
-            Place.Field.PHOTO_METADATAS
+            Place.Field.PHOTO_METADATAS,
+            Place.Field.DISPLAY_NAME,
+            Place.Field.FORMATTED_ADDRESS,
+            Place.Field.PRIMARY_TYPE_DISPLAY_NAME,
         )
-        if (fullDetails) {
-            fields.addAll(listOf(
-                Place.Field.DISPLAY_NAME,
-                Place.Field.FORMATTED_ADDRESS,
-                Place.Field.PRIMARY_TYPE_DISPLAY_NAME,
-                Place.Field.LAT_LNG
-            ))
-        }
 
         return try {
-            val response = placesClient.awaitFetchPlace(placeId, fields){
-                if (sessionToken != null) {
-                    this.sessionToken = sessionToken
-                }
-            }
+            val request = FetchPlaceRequest.builder(placeId, fields)
+                .setSessionToken(sessionToken)
+                .build()
+
+            val response = placesClient.fetchPlace(request).await()
             response.place
         } catch (e: Exception) {
             Log.e("PlacesService", "Error fetching place details: ${e.message}")
