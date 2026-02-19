@@ -13,6 +13,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import androidx.navigation.fragment.findNavController
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
@@ -102,11 +103,6 @@ class CreateReviewFragment : Fragment() {
     }
 
     private fun setupListeners() {
-        binding.backButton.setOnClickListener {
-            // Navigate back
-            requireActivity().onBackPressed()
-        }
-
         binding.changeText.setOnClickListener {
             openAutocomplete()
         }
@@ -161,7 +157,7 @@ class CreateReviewFragment : Fragment() {
                 if (it.isSuccess) {
                     Toast.makeText(requireContext(), "Review posted successfully!", Toast.LENGTH_SHORT).show()
                     // Navigate back or to feed
-                    requireActivity().onBackPressed()
+                    findNavController().popBackStack()
                 } else {
                     Toast.makeText(requireContext(), "Failed to post review: ${it.exceptionOrNull()?.message}", Toast.LENGTH_SHORT).show()
                 }
