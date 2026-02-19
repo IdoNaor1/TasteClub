@@ -135,4 +135,7 @@
     <string name="selected_photo_preview_desc">Selected photo preview</string>
     <string name="camera_icon_desc">Camera icon</string>
 
+    <!-- Edit Review -->
+    <string name="update_review">Update Review</string>
+
 </resources>

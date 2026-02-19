@@ -59,28 +59,42 @@ class ReviewAdapter : ListAdapter<Review, ReviewAdapter.ReviewViewHolder>(Review
                 dateTextView.text = dateFormat.format(review.createdAt)
 
                 // Load user avatar with Picasso
-                Picasso.get()
-                    .load(review.userProfileImageUrl)
-                    .placeholder(R.drawable.ic_user_placeholder)
-                    .error(R.drawable.ic_user_placeholder)
-                    .fit()
-                    .centerCrop()
-                    .into(userAvatarImageView)
+                if (!review.userProfileImageUrl.isNullOrBlank()) {
+                    try {
+                        Picasso.get()
+                            .load(review.userProfileImageUrl)
+                            .placeholder(R.drawable.ic_user_placeholder)
+                            .error(R.drawable.ic_user_placeholder)
+                            .fit()
+                            .centerCrop()
+                            .into(userAvatarImageView)
+                    } catch (e: IllegalArgumentException) {
+                        // In case Picasso rejects the path, fallback to placeholder
+                        userAvatarImageView.setImageResource(R.drawable.ic_user_placeholder)
+                    }
+                } else {
+                    userAvatarImageView.setImageResource(R.drawable.ic_user_placeholder)
+                }
 
                 // Restaurant info
                 restaurantNameTextView.text = review.restaurantName
                 restaurantAddressTextView.text = review.restaurantAddress
 
                 // Load restaurant image with Picasso
-                if (review.imageUrl.isNotEmpty()) {
+                if (!review.imageUrl.isNullOrBlank()) {
                     restaurantImageView.visibility = View.VISIBLE
-                    Picasso.get()
-                        .load(review.imageUrl)
-                        .placeholder(R.drawable.image_placeholder)
-                        .error(R.drawable.image_placeholder)
-                        .resize(800, 0)
-                        .centerCrop()
-                        .into(restaurantImageView)
+                    try {
+                        Picasso.get()
+                            .load(review.imageUrl)
+                            .placeholder(R.drawable.image_placeholder)
+                            .error(R.drawable.image_placeholder)
+                            .resize(800, 0)
+                            .centerCrop()
+                            .into(restaurantImageView)
+                    } catch (e: IllegalArgumentException) {
+                        // If path invalid, show placeholder instead of crashing
+                        restaurantImageView.setImageResource(R.drawable.image_placeholder)
+                    }
                 } else {
                     // Hide image if not available
                     restaurantImageView.visibility = View.GONE

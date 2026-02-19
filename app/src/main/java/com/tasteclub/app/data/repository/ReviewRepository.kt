@@ -1,6 +1,7 @@
 package com.tasteclub.app.data.repository
 
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.map
 import com.tasteclub.app.data.local.dao.ReviewDao
@@ -9,6 +10,7 @@ import com.tasteclub.app.data.local.entity.toEntity
 import com.tasteclub.app.data.model.Review
 import com.tasteclub.app.data.remote.firebase.FirestoreSource
 import com.tasteclub.app.data.remote.firebase.FirebaseStorageSource
+import com.google.firebase.storage.StorageException
 
 class ReviewRepository(
     private val firestoreSource: FirestoreSource,
@@ -90,9 +92,43 @@ class ReviewRepository(
     }
 
     suspend fun deleteReview(reviewId: String) {
+        // First, try to fetch the review to inspect whether it had an imageUrl.
+        // This avoids calling Storage delete for reviews that never had an image
+        // (which would commonly produce a 404 and an unnecessary stacktrace).
+        val imageUrl: String? = try {
+            firestoreSource.getReview(reviewId)?.imageUrl
+        } catch (e: Exception) {
+            // Couldn't fetch review (network/etc) - continue and attempt deletion anyway
+            Log.w("ReviewRepository", "Failed to fetch review $reviewId before delete: ${e.message}", e)
+            null
+        }
+
+        // Delete the Firestore document
         firestoreSource.deleteReview(reviewId)
-        storageSource.deleteReviewImage(reviewId)
+
+        // If we observed a non-blank image URL, attempt to delete the storage object.
+        if (!imageUrl.isNullOrBlank()) {
+            try {
+                storageSource.deleteReviewImage(reviewId)
+            } catch (e: StorageException) {
+                val msg = e.message ?: ""
+                val isNotFound = (e.errorCode == StorageException.ERROR_OBJECT_NOT_FOUND)
+                        || msg.contains("Not Found", ignoreCase = true)
+                        || msg.contains("Object does not exist", ignoreCase = true)
+
+                if (isNotFound) {
+                    Log.i("ReviewRepository", "Review image not found for $reviewId; skipping storage delete. Details: $msg")
+                } else {
+                    Log.w("ReviewRepository", "StorageException deleting image for $reviewId: ${e.message}", e)
+                }
+            } catch (e: Exception) {
+                Log.w("ReviewRepository", "Failed to delete review image for $reviewId: ${e.message}", e)
+            }
+        } else {
+            Log.i("ReviewRepository", "No image URL for review $reviewId; skipping storage delete.")
+        }
+
+        // Remove from local cache (Room) regardless of Storage result
         reviewDao.deleteById(reviewId)
     }
 }
-

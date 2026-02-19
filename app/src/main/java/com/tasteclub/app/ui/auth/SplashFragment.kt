@@ -25,7 +25,13 @@ class SplashFragment : Fragment(R.layout.fragment_splash) {
 
             val action = if (authRepo.isLoggedIn()) {
                 // Pull to local cache and check if profile exists
-                val user = authRepo.currentUserId()?.let { authRepo.refreshUserFromRemote(it) }
+                // Defensive: refreshUserFromRemote can throw; catch to avoid crash on startup
+                val user = try {
+                    authRepo.currentUserId()?.let { authRepo.refreshUserFromRemote(it) }
+                } catch (e: Exception) {
+                    android.util.Log.e("SplashFragment", "Error refreshing user on splash: ${e.message}", e)
+                    null
+                }
                 if (user != null) {
                     R.id.action_splash_to_feed
                 } else {
