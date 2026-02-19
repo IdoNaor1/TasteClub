@@ -29,7 +29,6 @@ import com.tasteclub.app.util.ServiceLocator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.IOException
 
 /**
  * EditReviewFragment - Edit an existing review
@@ -49,6 +48,7 @@ class EditReviewFragment : Fragment() {
     // Image picker
     private lateinit var pickImageLauncher: ActivityResultLauncher<String>
     private var selectedImageBitmap: Bitmap? = null
+    private var removeImageFlag: Boolean = false
 
     // Repositories/services
     private val reviewRepository by lazy { ServiceLocator.provideReviewRepository(requireContext()) }
@@ -86,6 +86,7 @@ class EditReviewFragment : Fragment() {
 
                     if (bitmap != null) {
                         selectedImageBitmap = bitmap
+                        removeImageFlag = false // user selected a replacement -> clear remove flag
                         selectedPhotoImageView.visibility = View.VISIBLE
                         selectedPhotoImageView.setImageBitmap(bitmap)
                         Toast.makeText(requireContext(), "Image selected", Toast.LENGTH_SHORT).show()
@@ -180,14 +181,36 @@ class EditReviewFragment : Fragment() {
         }
 
         // Photo handling: tap card or preview to pick/change image
-        addPhotosCard.setOnClickListener {
-            pickImageLauncher.launch("image/*")
-        }
+        val showPhotoOptions = {
+             // Build a simple options dialog (Replace / Remove / Cancel)
+             val hasCurrent = selectedImageBitmap != null || (currentReview?.imageUrl?.isNotBlank() == true)
+             val options = mutableListOf<String>()
+             options.add(getString(R.string.replace_photo))
+             if (hasCurrent) options.add(getString(R.string.remove_photo))
+             options.add(getString(R.string.cancel))
 
-        selectedPhotoImageView.setOnClickListener {
-            // Allow changing the selected image
-            pickImageLauncher.launch("image/*")
-        }
+             MaterialAlertDialogBuilder(requireContext())
+                 .setItems(options.toTypedArray()) { dialog, which ->
+                     val choice = options[which]
+                     when (choice) {
+                         getString(R.string.replace_photo) -> {
+                             pickImageLauncher.launch("image/*")
+                         }
+                         getString(R.string.remove_photo) -> {
+                             // Mark for removal and clear preview
+                             selectedImageBitmap = null
+                             removeImageFlag = true
+                             selectedPhotoImageView.setImageResource(R.drawable.image_placeholder)
+                             selectedPhotoImageView.visibility = View.GONE
+                         }
+                         else -> dialog.dismiss()
+                     }
+                 }
+                 .show()
+         }
+
+        addPhotosCard.setOnClickListener { showPhotoOptions() }
+        selectedPhotoImageView.setOnClickListener { showPhotoOptions() }
     }
 
     private fun loadReview(reviewId: String) {
@@ -248,16 +271,18 @@ class EditReviewFragment : Fragment() {
 
         val origText = updateReviewButton.text
         updateReviewButton.isEnabled = false
-        updateReviewButton.text = "Updating..."
+        updateReviewButton.text = getString(R.string.updating)
         lifecycleScope.launch {
             try {
                 val saved = withContext(Dispatchers.IO) {
                     // Pass selectedImageBitmap to repository; null means keep existing
-                    reviewRepository.upsertReview(updated, selectedImageBitmap)
+                    // Pass removeImageFlag to explicitly remove image when requested
+                    reviewRepository.upsertReview(updated, selectedImageBitmap, removeImageFlag)
                 }
                 // Update local state on success
                 currentReview = saved
                 selectedImageBitmap = null
+                removeImageFlag = false
 
                 // Ensure UI shows the newly uploaded image (if present)
                 if (saved.imageUrl.isNotBlank()) {

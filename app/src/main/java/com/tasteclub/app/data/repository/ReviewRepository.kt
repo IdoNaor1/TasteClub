@@ -75,7 +75,8 @@ class ReviewRepository(
      */
     suspend fun upsertReview(
         review: Review,
-        imageBitmap: Bitmap? = null
+        imageBitmap: Bitmap? = null,
+        removeImage: Boolean = false
     ): Review {
         // Step 1: ensure review has id + timestamps
         var saved = firestoreSource.upsertReview(review)
@@ -84,6 +85,14 @@ class ReviewRepository(
         if (imageBitmap != null) {
             val url = storageSource.uploadReviewImage(saved.id, imageBitmap)
             saved = firestoreSource.upsertReview(saved.copy(imageUrl = url))
+        } else if (removeImage) {
+            // Best-effort delete existing image in storage, then clear imageUrl in Firestore
+            try {
+                storageSource.deleteReviewImage(saved.id)
+            } catch (_: Exception) {
+                // ignore storage delete errors
+            }
+            saved = firestoreSource.upsertReview(saved.copy(imageUrl = ""))
         }
 
         // Step 4: cache locally
