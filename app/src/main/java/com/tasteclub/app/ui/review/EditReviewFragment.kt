@@ -1,5 +1,8 @@
 package com.tasteclub.app.ui.review
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -10,9 +13,12 @@ import android.widget.ImageView
 import android.widget.RatingBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.squareup.picasso.Picasso
@@ -23,6 +29,7 @@ import com.tasteclub.app.util.ServiceLocator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.IOException
 
 /**
  * EditReviewFragment - Edit an existing review
@@ -36,14 +43,61 @@ class EditReviewFragment : Fragment() {
     private lateinit var reviewEditText: TextInputEditText
     private lateinit var selectedPhotoImageView: ImageView
     private lateinit var addPhotosCard: View
-    private lateinit var updateReviewButton: View
-    private lateinit var deleteReviewButton: View
+    private lateinit var updateReviewButton: MaterialButton
+    private lateinit var deleteReviewButton: MaterialButton
+
+    // Image picker
+    private lateinit var pickImageLauncher: ActivityResultLauncher<String>
+    private var selectedImageBitmap: Bitmap? = null
 
     // Repositories/services
     private val reviewRepository by lazy { ServiceLocator.provideReviewRepository(requireContext()) }
 
     // Local state
     private var currentReview: Review? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        // Register image picker (MIME type: image/*)
+        pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            if (uri == null) return@registerForActivityResult
+
+            lifecycleScope.launch {
+                try {
+                    val bitmap = withContext(Dispatchers.IO) {
+                        // Decode bounds first to compute sample size
+                        val resolver = requireContext().contentResolver
+                        var sampleSize = 1
+                        resolver.openInputStream(uri)?.use { stream ->
+                            val boundsOptions = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                            BitmapFactory.decodeStream(stream, null, boundsOptions)
+                            val maxDim = 1200
+                            val maxSide = maxOf(boundsOptions.outWidth, boundsOptions.outHeight).coerceAtLeast(1)
+                            while (maxSide / sampleSize > maxDim) sampleSize *= 2
+                        }
+
+                        // Decode actual bitmap with computed sample size
+                        val decodeOptions = BitmapFactory.Options().apply { inSampleSize = sampleSize }
+                        resolver.openInputStream(uri)?.use { stream ->
+                            BitmapFactory.decodeStream(stream, null, decodeOptions)
+                        }
+                    }
+
+                    if (bitmap != null) {
+                        selectedImageBitmap = bitmap
+                        selectedPhotoImageView.visibility = View.VISIBLE
+                        selectedPhotoImageView.setImageBitmap(bitmap)
+                        Toast.makeText(requireContext(), "Image selected", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(requireContext(), "Failed to load image", Toast.LENGTH_SHORT).show()
+                    }
+                } catch (e: Exception) {
+                    Toast.makeText(requireContext(), "Failed to pick image: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -125,7 +179,15 @@ class EditReviewFragment : Fragment() {
                 .show()
         }
 
-        // Photo selection not implemented here; keep existing behavior (tapping could be wired later)
+        // Photo handling: tap card or preview to pick/change image
+        addPhotosCard.setOnClickListener {
+            pickImageLauncher.launch("image/*")
+        }
+
+        selectedPhotoImageView.setOnClickListener {
+            // Allow changing the selected image
+            pickImageLauncher.launch("image/*")
+        }
     }
 
     private fun loadReview(reviewId: String) {
@@ -147,7 +209,7 @@ class EditReviewFragment : Fragment() {
                 ratingBar.rating = review.rating.toFloat()
                 reviewEditText.setText(review.text)
 
-                if (review.imageUrl.isNotBlank()) {
+                if (review.imageUrl.isNotBlank() && selectedImageBitmap == null) {
                     selectedPhotoImageView.visibility = View.VISIBLE
                     Picasso.get()
                         .load(review.imageUrl)
@@ -156,6 +218,9 @@ class EditReviewFragment : Fragment() {
                         .fit()
                         .centerCrop()
                         .into(selectedPhotoImageView)
+                } else if (selectedImageBitmap != null) {
+                    selectedPhotoImageView.visibility = View.VISIBLE
+                    selectedPhotoImageView.setImageBitmap(selectedImageBitmap)
                 } else {
                     selectedPhotoImageView.visibility = View.GONE
                 }
@@ -178,14 +243,34 @@ class EditReviewFragment : Fragment() {
         val updated = existing.copy(
             rating = newRating,
             text = newText
-            // imageUrl left unchanged; image upload flow not implemented here
+            // imageUrl left unchanged unless we provide a new bitmap
         )
 
+        val origText = updateReviewButton.text
         updateReviewButton.isEnabled = false
+        updateReviewButton.text = "Updating..."
         lifecycleScope.launch {
             try {
-                withContext(Dispatchers.IO) {
-                    reviewRepository.upsertReview(updated, null)
+                val saved = withContext(Dispatchers.IO) {
+                    // Pass selectedImageBitmap to repository; null means keep existing
+                    reviewRepository.upsertReview(updated, selectedImageBitmap)
+                }
+                // Update local state on success
+                currentReview = saved
+                selectedImageBitmap = null
+
+                // Ensure UI shows the newly uploaded image (if present)
+                if (saved.imageUrl.isNotBlank()) {
+                    withContext(Dispatchers.Main) {
+                        selectedPhotoImageView.visibility = View.VISIBLE
+                        Picasso.get()
+                            .load(saved.imageUrl)
+                            .placeholder(R.drawable.image_placeholder)
+                            .error(R.drawable.image_placeholder)
+                            .fit()
+                            .centerCrop()
+                            .into(selectedPhotoImageView)
+                    }
                 }
                 Toast.makeText(requireContext(), "Review updated", Toast.LENGTH_SHORT).show()
                 // Navigate back to previous screen
@@ -193,6 +278,7 @@ class EditReviewFragment : Fragment() {
             } catch (e: Exception) {
                 Toast.makeText(requireContext(), "Failed to update review: ${e.message}", Toast.LENGTH_LONG).show()
                 updateReviewButton.isEnabled = true
+                updateReviewButton.text = origText
             }
         }
     }
