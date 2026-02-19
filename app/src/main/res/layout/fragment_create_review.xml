@@ -55,7 +55,7 @@
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:src="@drawable/ic_location"
-                        android:contentDescription="Location icon"
+                        android:contentDescription="@string/location_icon_desc"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent" />
@@ -72,22 +72,29 @@
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent">
 
+                        <!-- Keep name/address on a single line and ellipsize to avoid vertical growth -->
                         <TextView
                             android:id="@+id/restaurantName"
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="@string/restaurant_name_placeholder"
                             android:textStyle="bold"
                             android:textSize="16sp"
-                            android:textColor="@color/text_primary" />
+                            android:textColor="@color/text_primary"
+                            android:maxLines="1"
+                            android:ellipsize="end"
+                            android:singleLine="true" />
 
                         <TextView
                             android:id="@+id/restaurantAddress"
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="@string/restaurant_address_placeholder"
                             android:textSize="14sp"
-                            android:textColor="@color/text_secondary" />
+                            android:textColor="@color/text_secondary"
+                            android:maxLines="1"
+                            android:ellipsize="end"
+                            android:singleLine="true" />
 
                     </LinearLayout>
 
@@ -97,6 +104,8 @@
                         android:layout_height="wrap_content"
                         android:text="@string/select_restaurant"
                         style="@style/Widget.TasteClub.TextButton"
+                        android:maxLines="1"
+                        android:ellipsize="end"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent" />
@@ -185,7 +194,7 @@
                     android:layout_height="match_parent"
                     android:scaleType="centerCrop"
                     android:visibility="gone"
-                    android:contentDescription="Selected photo preview" />
+                    android:contentDescription="@string/selected_photo_preview_desc" />
 
                 <LinearLayout
                     android:id="@+id/addPhotosOverlay"
@@ -199,7 +208,7 @@
                         android:layout_width="48dp"
                         android:layout_height="48dp"
                         android:src="@drawable/ic_camera"
-                        android:contentDescription="Camera icon"
+                        android:contentDescription="@string/camera_icon_desc"
                         app:tint="@color/text_secondary" />
 
                     <TextView

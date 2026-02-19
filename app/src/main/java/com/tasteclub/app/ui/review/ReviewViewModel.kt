@@ -33,6 +33,13 @@ class ReviewViewModel(
     private val _selectedRestaurantDisplay = MutableLiveData<String?>()
     val selectedRestaurantDisplay: LiveData<String?> = _selectedRestaurantDisplay
 
+    // Separate LiveData for restaurant name and address so UI can show them independently
+    private val _selectedRestaurantName = MutableLiveData<String?>()
+    val selectedRestaurantName: LiveData<String?> = _selectedRestaurantName
+
+    private val _selectedRestaurantAddress = MutableLiveData<String?>()
+    val selectedRestaurantAddress: LiveData<String?> = _selectedRestaurantAddress
+
     private val _rating = MutableLiveData<Float>(0f)
     val rating: LiveData<Float> = _rating
 
@@ -50,10 +57,18 @@ class ReviewViewModel(
         _selectedRestaurantId.value = restaurantId
     }
 
-    // New API: set both id and a display string (e.g., "Name, Address")
-    fun setSelectedRestaurant(restaurantId: String, displayText: String?) {
+    // New API: set id, name, and address separately. Also keep a legacy "display" value
+    // composed from name + address for backwards compatibility with observers that use it.
+    fun setSelectedRestaurant(restaurantId: String, name: String?, address: String?) {
         _selectedRestaurantId.value = restaurantId
-        _selectedRestaurantDisplay.value = displayText
+        _selectedRestaurantName.value = name
+        _selectedRestaurantAddress.value = address
+
+        // Intentionally do NOT update _selectedRestaurantDisplay here because the UI's
+        // `changeText` should not be modified when selecting a restaurant; the fragment
+        // will observe `selectedRestaurantName`/`selectedRestaurantAddress` and update
+        // the dedicated fields. Keep legacy display untouched (or clear it) as desired.
+        _selectedRestaurantDisplay.value = null
     }
 
     fun setRating(rating: Float) {

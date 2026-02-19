@@ -98,11 +98,12 @@ class CreateReviewFragment : Fragment() {
                 val placeName = prediction.getPrimaryText(null).toString()
                 val placeAddress = prediction.getSecondaryText(null).toString()
 
-                val display = "$placeName, $placeAddress"
-                binding.changeText.text = display
+                binding.restaurantName.text = placeName
+                binding.restaurantAddress.text = placeAddress
+
 
                 // Use new API to set both id and display text
-                viewModel.setSelectedRestaurant(placeId, display)
+                viewModel.setSelectedRestaurant(placeId, placeName, placeAddress)
 
             } else if (result.resultCode == PlaceAutocompleteActivity.RESULT_ERROR) {
                 val data = result.data ?: return@registerForActivityResult
@@ -171,6 +172,23 @@ class CreateReviewFragment : Fragment() {
             } else {
                 // Fallback to default strings when nothing selected
                 binding.changeText.text = getString(com.tasteclub.app.R.string.select_restaurant)
+            }
+        })
+
+        // Observe separate name/address LiveData to populate the dedicated fields
+        viewModel.selectedRestaurantName.observe(viewLifecycleOwner, Observer { name ->
+            if (!name.isNullOrBlank()) {
+                binding.restaurantName.text = name
+            } else {
+                binding.restaurantName.text = ""
+            }
+        })
+
+        viewModel.selectedRestaurantAddress.observe(viewLifecycleOwner, Observer { address ->
+            if (!address.isNullOrBlank()) {
+                binding.restaurantAddress.text = address
+            } else {
+                binding.restaurantAddress.text = ""
             }
         })
 
