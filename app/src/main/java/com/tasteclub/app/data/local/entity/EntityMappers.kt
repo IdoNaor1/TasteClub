@@ -65,10 +65,11 @@ fun RestaurantEntity.toDomain(): Restaurant = Restaurant(
     id = id,
     name = name,
     addressComponents = addressComponents,
+    address = address,
     lat = lat,
     lng = lng,
     photoUrl = photoUrl,
-    categories = categories.split(",").filter { it.isNotBlank() },
+    primaryType = primaryType,
     createdAt = createdAt,
     lastUpdated = lastUpdated
 )
@@ -77,10 +78,11 @@ fun Restaurant.toEntity(): RestaurantEntity = RestaurantEntity(
     id = id,
     name = name,
     addressComponents = addressComponents,
+    address = address,
     lat = lat,
     lng = lng,
     photoUrl = photoUrl,
-    categories = categories.joinToString(","),
+    primaryType = primaryType,
     createdAt = createdAt,
     lastUpdated = lastUpdated
 )

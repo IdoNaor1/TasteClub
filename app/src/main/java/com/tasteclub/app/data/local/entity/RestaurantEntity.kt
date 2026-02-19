@@ -9,10 +9,11 @@ data class RestaurantEntity(
     @PrimaryKey val id: String,
     val name: String,
     val addressComponents: AddressComponents?,
+    val address: String,
     val lat: Double,
     val lng: Double,
     val photoUrl: String,
-    val categories: String, // Comma-separated for simplicity
+    val primaryType: String, // Single primary type
     val createdAt: Long,
     val lastUpdated: Long
 )

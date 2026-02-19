@@ -22,10 +22,11 @@ class RestaurantRepository(
             id = restaurant.id,
             name = restaurant.name,
             addressComponents = restaurant.addressComponents,
+            address = restaurant.address,
             lat = restaurant.lat,
             lng = restaurant.lng,
             photoUrl = restaurant.photoUrl,
-            categories = restaurant.categories.joinToString(","),
+            primaryType = restaurant.primaryType,
             createdAt = restaurant.createdAt,
             lastUpdated = restaurant.lastUpdated
         )
@@ -36,22 +37,48 @@ class RestaurantRepository(
 
     /**
      * Get a restaurant by ID from local Room (for offline access).
-     * If not found locally, could optionally fetch from Firestore, but for now just local.
+     * If not found locally, fetch from Firestore and cache it in Room.
      */
     suspend fun getRestaurantById(id: String): Restaurant? {
-        val entity = restaurantDao.getById(id) ?: return null
-        return Restaurant(
-            id = entity.id,
-            name = entity.name,
-            addressComponents = entity.addressComponents,
-            lat = entity.lat,
-            lng = entity.lng,
-            photoUrl = entity.photoUrl,
-            categories = if (entity.categories.isBlank()) emptyList() else entity.categories.split(",").filter { it.isNotBlank() },
-            createdAt = entity.createdAt,
-            lastUpdated = entity.lastUpdated
+        // Try local cache first
+        val entity = restaurantDao.getById(id)
+        if (entity != null) {
+            return Restaurant(
+                id = entity.id,
+                name = entity.name,
+                addressComponents = entity.addressComponents,
+                address = entity.address,
+                lat = entity.lat,
+                lng = entity.lng,
+                photoUrl = entity.photoUrl,
+                primaryType = entity.primaryType,
+                createdAt = entity.createdAt,
+                lastUpdated = entity.lastUpdated
+            )
+        }
+
+        // Not found locally -> fetch from Firestore
+        val remote = firestoreSource.getRestaurant(id) ?: return null
+
+        // Cache fetched restaurant in Room
+        val cached = RestaurantEntity(
+            id = remote.id,
+            name = remote.name,
+            addressComponents = remote.addressComponents,
+            address = remote.address,
+            lat = remote.lat,
+            lng = remote.lng,
+            photoUrl = remote.photoUrl,
+            primaryType = remote.primaryType,
+            createdAt = remote.createdAt,
+            lastUpdated = remote.lastUpdated
         )
+        restaurantDao.upsert(cached)
+
+        return remote
     }
+
+
 
     /**
      * Delete a restaurant from both Firestore and Room.

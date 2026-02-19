@@ -14,7 +14,7 @@ import com.tasteclub.app.data.local.entity.RestaurantEntity
 
 @Database(
     entities = [UserEntity::class, ReviewEntity::class, RestaurantEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -36,7 +36,7 @@ abstract class TasteClubDatabase : RoomDatabase() {
                     "tasteclub_db"
                 )
                     // for development - should not be used in production
-                    .fallbackToDestructiveMigration()
+                    .fallbackToDestructiveMigration(true)
                     .build()
 
                 INSTANCE = instance

@@ -13,17 +13,14 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.viewModelScope
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken
 import com.google.android.libraries.places.widget.PlaceAutocompleteActivity
-import com.tasteclub.app.data.model.Restaurant
 import com.tasteclub.app.data.remote.places.PlacesService
 import com.tasteclub.app.databinding.FragmentCreateReviewBinding
 import com.tasteclub.app.util.ServiceLocator
-import kotlinx.coroutines.launch
 
 /**
  * CreateReviewFragment - Create a new review
@@ -37,7 +34,8 @@ class CreateReviewFragment : Fragment() {
         ReviewViewModelFactory(
             ServiceLocator.provideReviewRepository(requireContext()),
             ServiceLocator.provideRestaurantRepository(requireContext()),
-            ServiceLocator.providePlacesService(requireContext())
+            ServiceLocator.providePlacesService(requireContext()),
+            ServiceLocator.provideAuthRepository(requireContext())
         )
     }
 
@@ -66,9 +64,11 @@ class CreateReviewFragment : Fragment() {
                 val placeName = prediction.getPrimaryText(null).toString()
                 val placeAddress = prediction.getSecondaryText(null).toString()
 
-                binding.changeText.text = "$placeName, $placeAddress"
+                val display = "$placeName, $placeAddress"
+                binding.changeText.text = display
 
-                viewModel.setSelectedRestaurantId(placeId)
+                // Use new API to set both id and display text
+                viewModel.setSelectedRestaurant(placeId, display)
 
             } else if (result.resultCode == PlaceAutocompleteActivity.RESULT_ERROR) {
                 val data = result.data ?: return@registerForActivityResult
@@ -122,6 +122,9 @@ class CreateReviewFragment : Fragment() {
         }
 
         binding.postReviewButton.setOnClickListener {
+            // Ensure current contents of the EditText and rating are pushed to the ViewModel
+            viewModel.setReviewText(binding.reviewEditText.text.toString())
+            viewModel.setRating(binding.ratingBar.rating)
             viewModel.createReview()
         }
 
@@ -129,10 +132,11 @@ class CreateReviewFragment : Fragment() {
     }
 
     private fun setupObservers() {
-        viewModel.selectedRestaurantId.observe(viewLifecycleOwner, Observer { restaurantId ->
-            if (restaurantId != null) {
-                binding.changeText.text = getString(com.tasteclub.app.R.string.change_restaurant)
+        viewModel.selectedRestaurantDisplay.observe(viewLifecycleOwner, Observer { display ->
+            if (!display.isNullOrBlank()) {
+                binding.changeText.text = display
             } else {
+                // Fallback to default strings when nothing selected
                 binding.changeText.text = getString(com.tasteclub.app.R.string.select_restaurant)
             }
         })
