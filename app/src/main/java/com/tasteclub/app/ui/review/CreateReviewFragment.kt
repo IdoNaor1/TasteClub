@@ -3,7 +3,10 @@ package com.tasteclub.app.ui.review
 import android.Manifest
 import android.app.Activity
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,9 +22,11 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken
 import com.google.android.libraries.places.widget.PlaceAutocompleteActivity
+import com.squareup.picasso.Picasso
 import com.tasteclub.app.data.remote.places.PlacesService
 import com.tasteclub.app.databinding.FragmentCreateReviewBinding
 import com.tasteclub.app.util.ServiceLocator
+import java.io.IOException
 
 /**
  * CreateReviewFragment - Create a new review
@@ -45,12 +50,40 @@ class CreateReviewFragment : Fragment() {
     private var sessionToken: AutocompleteSessionToken? = null
     private var currentLocation: LatLng? = null
 
+    // Store selected image bitmap (nullable)
+    private var selectedImageBitmap: Bitmap? = null
+
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
             getCurrentLocation()
         }
+    }
+
+    // Camera permission launcher for taking photo
+    private val cameraPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            launchCamera()
+        } else {
+            Toast.makeText(requireContext(), "Camera permission is required to take photos", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    // Launch camera to get a Bitmap preview
+    private val takePictureLauncher = registerForActivityResult(
+        ActivityResultContracts.TakePicturePreview()
+    ) { bitmap ->
+        bitmap?.let { onImageSelected(it) }
+    }
+
+    // Pick image from gallery
+    private val pickImageLauncher = registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { handleImageUri(it) }
     }
 
     private val autocompleteLauncher =
@@ -121,10 +154,14 @@ class CreateReviewFragment : Fragment() {
             // Ensure current contents of the EditText and rating are pushed to the ViewModel
             viewModel.setReviewText(binding.reviewEditText.text.toString())
             viewModel.setRating(binding.ratingBar.rating)
-            viewModel.createReview()
+            // Pass the selected image bitmap (may be null)
+            viewModel.createReview(selectedImageBitmap)
         }
 
-        // TODO: Add photos functionality
+        // Photos: tap opens bottom sheet with camera/gallery options
+        binding.addPhotosCard.setOnClickListener {
+            showPhotoSourceOptions()
+        }
     }
 
     private fun setupObservers() {
@@ -164,6 +201,103 @@ class CreateReviewFragment : Fragment() {
                 viewModel.resetCreateResult()
             }
         })
+    }
+
+    private fun showPhotoSourceOptions() {
+        // Simple dialog for camera/gallery choice
+        val options = arrayOf("Take photo", "Choose from gallery", "Remove photo")
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle("Add photo")
+            .setItems(options) { dialog, which ->
+                when (which) {
+                    0 -> checkCameraPermissionAndLaunch()
+                    1 -> pickImageLauncher.launch("image/*")
+                    2 -> removeSelectedImage()
+                }
+                dialog.dismiss()
+            }
+            .show()
+    }
+
+    private fun checkCameraPermissionAndLaunch() {
+        when {
+            ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                // Permission already granted, launch camera
+                launchCamera()
+            }
+            shouldShowRequestPermissionRationale(Manifest.permission.CAMERA) -> {
+                // Show rationale dialog
+                androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                    .setTitle("Camera Permission Required")
+                    .setMessage("Camera permission is needed to take photos for your review.")
+                    .setPositiveButton("Grant") { _, _ ->
+                        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                    }
+                    .setNegativeButton("Cancel", null)
+                    .show()
+            }
+            else -> {
+                // Request permission
+                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+            }
+        }
+    }
+
+    private fun launchCamera() {
+        takePictureLauncher.launch(null)
+    }
+
+    private fun handleImageUri(uri: Uri) {
+        try {
+            val bitmap = MediaStore.Images.Media.getBitmap(requireContext().contentResolver, uri)
+            onImageSelected(bitmap)
+        } catch (e: IOException) {
+            Toast.makeText(context, "Failed to load image", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun onImageSelected(bitmap: Bitmap) {
+        // Compress image before upload / attach to review
+        val compressedBitmap = compressBitmap(bitmap, 1200, 1200)
+        selectedImageBitmap = compressedBitmap
+        // Show preview
+        binding.selectedPhotoImageView.visibility = View.VISIBLE
+        binding.addPhotosOverlay.visibility = View.GONE
+        // Use Picasso to display the bitmap into ImageView (Picasso supports bitmaps via .load)
+        Picasso.get()
+            .load(android.net.Uri.parse(MediaStore.Images.Media.insertImage(requireContext().contentResolver, compressedBitmap, null, null)))
+            .fit()
+            .centerCrop()
+            .into(binding.selectedPhotoImageView)
+    }
+
+    private fun removeSelectedImage() {
+        selectedImageBitmap = null
+        binding.selectedPhotoImageView.setImageDrawable(null)
+        binding.selectedPhotoImageView.visibility = View.GONE
+        binding.addPhotosOverlay.visibility = View.VISIBLE
+    }
+
+    /**
+     * Compress bitmap to max dimensions while maintaining aspect ratio
+     */
+    private fun compressBitmap(bitmap: Bitmap, maxWidth: Int, maxHeight: Int): Bitmap {
+        val width = bitmap.width
+        val height = bitmap.height
+
+        val ratio = minOf(maxWidth.toFloat() / width, maxHeight.toFloat() / height)
+
+        if (ratio >= 1) {
+            return bitmap
+        }
+
+        val newWidth = (width * ratio).toInt()
+        val newHeight = (height * ratio).toInt()
+
+        return Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true)
     }
 
     private fun openAutocomplete() {

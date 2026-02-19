@@ -1,5 +1,6 @@
 package com.tasteclub.app.ui.review
 
+import android.graphics.Bitmap
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -63,7 +64,13 @@ class ReviewViewModel(
         _reviewText.value = text
     }
 
+    // Backwards-compatible createReview() which delegates to new overload without image
     fun createReview() {
+        createReview(null)
+    }
+
+    // New: accept an optional Bitmap image for the review
+    fun createReview(imageBitmap: Bitmap?) {
         val restaurantId = _selectedRestaurantId.value
         val rating = _rating.value ?: 0f
         val text = _reviewText.value ?: ""
@@ -76,7 +83,7 @@ class ReviewViewModel(
         if (text.isBlank()) missing.add("text")
 
         if (missing.isNotEmpty()) {
-            val message = "Missing inputs: ${missing.joinToString(", ")}"
+            val message = "Missing inputs: ${missing.joinToString(", ") }"
             Log.w(TAG, message)
             _createResult.value = Result.failure(Exception(message))
             return
@@ -157,7 +164,7 @@ class ReviewViewModel(
                 )
 
                 Log.d(TAG, "About to upsert review: $review")
-                val created = reviewRepository.upsertReview(review)
+                val created = reviewRepository.upsertReview(review, imageBitmap)
                 Log.d(TAG, "Review created: $created")
                 _createResult.value = Result.success(created)
             } catch (e: Exception) {

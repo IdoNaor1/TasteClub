@@ -178,13 +178,24 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent">
 
+                <!-- Selected photo preview (initially gone). Will be toggled by fragment. -->
+                <ImageView
+                    android:id="@+id/selectedPhotoImageView"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone"
+                    android:contentDescription="Selected photo preview" />
+
                 <LinearLayout
+                    android:id="@+id/addPhotosOverlay"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:orientation="vertical"
                     android:gravity="center">
 
                     <ImageView
+                        android:id="@+id/addPhotoIcon"
                         android:layout_width="48dp"
                         android:layout_height="48dp"
                         android:src="@drawable/ic_camera"
