@@ -14,6 +14,11 @@ data class RestaurantEntity(
     val lng: Double,
     val photoUrl: String,
     val primaryType: String, // Single primary type
+
+    // New aggregate fields
+    val averageRating: Double,
+    val numReviews: Int,
+
     val createdAt: Long,
     val lastUpdated: Long
 )

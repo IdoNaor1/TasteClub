@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.map
 import com.tasteclub.app.data.local.dao.ReviewDao
+import com.tasteclub.app.data.local.dao.RestaurantDao
 import com.tasteclub.app.data.local.entity.toDomain
 import com.tasteclub.app.data.local.entity.toEntity
 import com.tasteclub.app.data.model.Review
@@ -15,7 +16,8 @@ import com.google.firebase.storage.StorageException
 class ReviewRepository(
     private val firestoreSource: FirestoreSource,
     private val storageSource: FirebaseStorageSource,
-    private val reviewDao: ReviewDao
+    private val reviewDao: ReviewDao,
+    private val restaurantDao: RestaurantDao
 ) {
     // --------------------
     // Observers (UI reads from Room)
@@ -97,20 +99,31 @@ class ReviewRepository(
 
         // Step 4: cache locally
         reviewDao.upsert(saved.toEntity())
+
+        // Update local restaurant cache with recomputed aggregates
+        try {
+            val restaurant = firestoreSource.getRestaurant(saved.restaurantId)
+            if (restaurant != null) {
+                restaurantDao.upsert(restaurant.toEntity())
+            }
+        } catch (e: Exception) {
+            Log.w("ReviewRepository", "Failed to refresh restaurant cache after review upsert: ${e.message}")
+        }
+
         return saved
     }
 
     suspend fun deleteReview(reviewId: String) {
-        // First, try to fetch the review to inspect whether it had an imageUrl.
-        // This avoids calling Storage delete for reviews that never had an image
-        // (which would commonly produce a 404 and an unnecessary stacktrace).
-        val imageUrl: String? = try {
-            firestoreSource.getReview(reviewId)?.imageUrl
+        // Fetch the review before deletion so we can determine restaurantId and imageUrl
+        val reviewBeforeDelete: Review? = try {
+            firestoreSource.getReview(reviewId)
         } catch (e: Exception) {
-            // Couldn't fetch review (network/etc) - continue and attempt deletion anyway
             Log.w("ReviewRepository", "Failed to fetch review $reviewId before delete: ${e.message}", e)
             null
         }
+
+        val imageUrl: String? = reviewBeforeDelete?.imageUrl
+        val restaurantId: String? = reviewBeforeDelete?.restaurantId
 
         // Delete the Firestore document
         firestoreSource.deleteReview(reviewId)
@@ -139,5 +152,17 @@ class ReviewRepository(
 
         // Remove from local cache (Room) regardless of Storage result
         reviewDao.deleteById(reviewId)
+
+        // Immediately refresh local Restaurant cache for the affected restaurant
+        if (!restaurantId.isNullOrBlank()) {
+            try {
+                val restaurant = firestoreSource.getRestaurant(restaurantId)
+                if (restaurant != null) {
+                    restaurantDao.upsert(restaurant.toEntity())
+                }
+            } catch (e: Exception) {
+                Log.w("ReviewRepository", "Failed to refresh restaurant cache after review delete: ${e.message}")
+            }
+        }
     }
 }

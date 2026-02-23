@@ -82,7 +82,14 @@ class MyPostsFragment : Fragment() {
     private fun setupRecyclerView() {
         adapter = MyPostsAdapter(
             onEditClick = { review -> onEditReview(review) },
-            onDeleteClick = { review -> onDeleteReview(review) }
+            onDeleteClick = { review -> onDeleteReview(review) },
+            onRestaurantClick = { restaurantId, restaurantName ->
+                val bundle = Bundle().apply {
+                    putString("restaurantId", restaurantId)
+                    putString("restaurantName", restaurantName)
+                }
+                findNavController().navigate(R.id.action_my_posts_to_restaurant_detail, bundle)
+            }
         )
 
         myPostsRecyclerView.apply {

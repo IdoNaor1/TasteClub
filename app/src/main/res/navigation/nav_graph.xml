@@ -129,6 +129,15 @@
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right" />
+
+        <!-- Navigate to restaurant detail -->
+        <action
+            android:id="@+id/action_feed_to_restaurant_detail"
+            app:destination="@id/restaurantDetailFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
     </fragment>
 
     <!-- My Posts Screen - Bottom Nav Destination -->
@@ -151,6 +160,15 @@
         <action
             android:id="@+id/action_my_posts_to_edit_review"
             app:destination="@id/editReviewFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+
+        <!-- Navigate to restaurant detail -->
+        <action
+            android:id="@+id/action_my_posts_to_restaurant_detail"
+            app:destination="@id/restaurantDetailFragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"

@@ -18,7 +18,9 @@ import java.util.Locale
  * ReviewAdapter - Adapter for displaying review cards in RecyclerView
  * Uses ListAdapter with shared ReviewDiffCallback for efficient updates
  */
-class ReviewAdapter : ListAdapter<Review, ReviewAdapter.ReviewViewHolder>(ReviewDiffCallback()) {
+class ReviewAdapter(
+    private val onRestaurantClick: ((restaurantId: String, restaurantName: String) -> Unit)? = null
+) : ListAdapter<Review, ReviewAdapter.ReviewViewHolder>(ReviewDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ReviewViewHolder {
         val binding = ItemReviewCardBinding.inflate(
@@ -79,6 +81,13 @@ class ReviewAdapter : ListAdapter<Review, ReviewAdapter.ReviewViewHolder>(Review
                 // Restaurant info
                 restaurantNameTextView.text = review.restaurantName
                 restaurantAddressTextView.text = review.restaurantAddress
+
+                // Restaurant name click -> navigate to restaurant detail
+                restaurantNameTextView.setOnClickListener {
+                    if (review.restaurantId.isNotBlank()) {
+                        onRestaurantClick?.invoke(review.restaurantId, review.restaurantName)
+                    }
+                }
 
                 // Load restaurant image with Picasso
                 if (!review.imageUrl.isNullOrBlank()) {

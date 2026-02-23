@@ -54,7 +54,8 @@ object ServiceLocator {
             reviewRepository ?: ReviewRepository(
                 firestoreSource = provideFirestoreSource(),
                 storageSource = provideStorageSource(),
-                reviewDao = provideDatabase(context).reviewDao()
+                reviewDao = provideDatabase(context).reviewDao(),
+                restaurantDao = provideDatabase(context).restaurantDao()
             ).also { reviewRepository = it }
         }
     }

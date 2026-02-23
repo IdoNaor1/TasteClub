@@ -70,6 +70,8 @@ fun RestaurantEntity.toDomain(): Restaurant = Restaurant(
     lng = lng,
     photoUrl = photoUrl,
     primaryType = primaryType,
+    averageRating = averageRating,
+    numReviews = numReviews,
     createdAt = createdAt,
     lastUpdated = lastUpdated
 )
@@ -83,6 +85,8 @@ fun Restaurant.toEntity(): RestaurantEntity = RestaurantEntity(
     lng = lng,
     photoUrl = photoUrl,
     primaryType = primaryType,
+    averageRating = averageRating,
+    numReviews = numReviews,
     createdAt = createdAt,
     lastUpdated = lastUpdated
 )

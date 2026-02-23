@@ -81,7 +81,7 @@
         <item name="itemRippleColor">@color/primary_brown</item>
     </style>
 
-    <style name="ThemeOverlay.TasteClub.BottomNavigationView" parent="">
+    <style name="ThemeOverlay.TasteClub.BottomNavigationView" parent="ThemeOverlay.Material3">
         <item name="colorPrimary">@color/primary_brown</item>
         <item name="colorOnSurface">@color/text_secondary</item>
     </style>

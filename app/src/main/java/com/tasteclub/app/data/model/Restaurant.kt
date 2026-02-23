@@ -12,6 +12,10 @@ data class Restaurant(
     val photoUrl: String = "",
     val primaryType: String = "",
 
+    // New aggregate fields
+    val averageRating: Double = 0.0,
+    val numReviews: Int = 0,
+
     // Meta
     val createdAt: Long = 0L,
     val lastUpdated: Long = 0L

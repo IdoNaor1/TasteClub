@@ -1,7 +1,10 @@
 package com.tasteclub.app.data.repository
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.map
 import com.tasteclub.app.data.local.dao.RestaurantDao
 import com.tasteclub.app.data.local.entity.RestaurantEntity
+import com.tasteclub.app.data.local.entity.toDomain
 import com.tasteclub.app.data.model.Restaurant
 import com.tasteclub.app.data.remote.firebase.FirestoreSource
 
@@ -27,12 +30,23 @@ class RestaurantRepository(
             lng = restaurant.lng,
             photoUrl = restaurant.photoUrl,
             primaryType = restaurant.primaryType,
+            averageRating = restaurant.averageRating,
+            numReviews = restaurant.numReviews,
             createdAt = restaurant.createdAt,
             lastUpdated = restaurant.lastUpdated
         )
         restaurantDao.upsert(entity)
 
         return restaurant
+    }
+
+    /**
+     * Observe a restaurant in the local Room cache. This is reactive and will update when Room changes.
+     */
+    fun observeRestaurantById(id: String): LiveData<Restaurant?> {
+        return restaurantDao.observeById(id).map { entity ->
+            entity?.toDomain()
+        }
     }
 
     /**
@@ -52,6 +66,8 @@ class RestaurantRepository(
                 lng = entity.lng,
                 photoUrl = entity.photoUrl,
                 primaryType = entity.primaryType,
+                averageRating = entity.averageRating,
+                numReviews = entity.numReviews,
                 createdAt = entity.createdAt,
                 lastUpdated = entity.lastUpdated
             )
@@ -70,6 +86,8 @@ class RestaurantRepository(
             lng = remote.lng,
             photoUrl = remote.photoUrl,
             primaryType = remote.primaryType,
+            averageRating = remote.averageRating,
+            numReviews = remote.numReviews,
             createdAt = remote.createdAt,
             lastUpdated = remote.lastUpdated
         )

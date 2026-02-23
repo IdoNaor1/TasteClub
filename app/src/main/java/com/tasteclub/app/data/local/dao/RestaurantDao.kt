@@ -1,5 +1,6 @@
 package com.tasteclub.app.data.local.dao
 
+import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -12,6 +13,9 @@ interface RestaurantDao {
 
     @Query("SELECT * FROM restaurants WHERE id = :id")
     suspend fun getById(id: String): RestaurantEntity?
+
+    @Query("SELECT * FROM restaurants WHERE id = :id LIMIT 1")
+    fun observeById(id: String): LiveData<RestaurantEntity?>
 
     @Query("SELECT * FROM restaurants ORDER BY lastUpdated DESC")
     fun getAll(): Flow<List<RestaurantEntity>>
