@@ -96,37 +96,38 @@
 
                 </LinearLayout>
 
-                <!-- Information Grid 2x2 -->
-                <GridLayout
+                <!-- Information Row -->
+                <LinearLayout
                     android:id="@+id/info_grid"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:columnCount="2"
-                    android:rowCount="1"
-                    android:useDefaultMargins="true"
+                    android:orientation="horizontal"
                     android:layout_marginTop="12dp"
-                    android:alignmentMode="alignMargins">
+                    android:baselineAligned="false">
 
                     <!-- Address -->
                     <LinearLayout
                         android:id="@+id/info_address"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_columnWeight="1"
+                        android:layout_weight="1"
                         android:orientation="horizontal"
-                        android:gravity="center_vertical">
+                        android:gravity="top"
+                        android:layout_marginEnd="8dp">
 
                         <ImageView
                             android:layout_width="20dp"
                             android:layout_height="20dp"
-                            android:src="@mipmap/ic_launcher"
+                            android:src="@drawable/ic_address"
                             android:contentDescription="@string/address_icon_desc"
                             app:tint="?attr/colorPrimary"
-                            android:layout_marginEnd="8dp" />
+                            android:layout_marginEnd="8dp"
+                            android:layout_marginTop="2dp" />
 
                         <LinearLayout
-                            android:layout_width="wrap_content"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:layout_weight="1"
                             android:orientation="vertical">
 
                             <TextView
@@ -155,21 +156,24 @@
                         android:id="@+id/info_cuisine"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_columnWeight="1"
+                        android:layout_weight="1"
                         android:orientation="horizontal"
-                        android:gravity="center_vertical">
+                        android:gravity="top"
+                        android:layout_marginStart="8dp">
 
                         <ImageView
                             android:layout_width="20dp"
                             android:layout_height="20dp"
-                            android:src="@mipmap/ic_launcher"
+                            android:src="@drawable/ic_cuisine_type"
                             android:contentDescription="@string/cuisine_icon_desc"
                             app:tint="?attr/colorPrimary"
-                            android:layout_marginEnd="8dp" />
+                            android:layout_marginEnd="8dp"
+                            android:layout_marginTop="2dp" />
 
                         <LinearLayout
-                            android:layout_width="wrap_content"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:layout_weight="1"
                             android:orientation="vertical">
 
                             <TextView
@@ -193,7 +197,7 @@
 
                     </LinearLayout>
 
-                </GridLayout>
+                </LinearLayout>
 
                 <!-- Action Buttons Row -->
                 <LinearLayout
@@ -292,15 +296,24 @@
         </HorizontalScrollView>
 
         <!-- Rating Breakdown Section -->
+        <TextView
+            android:id="@+id/rating_breakdown_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/rating_breakdown_title"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:textColor="?attr/colorOnSurface"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp" />
+
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/rating_breakdown_card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
             android:layout_marginBottom="8dp"
             app:cardCornerRadius="12dp"
             app:cardElevation="4dp"
-            app:cardBackgroundColor="?attr/colorSurfaceVariant"
+            style="Widget.TasteClub.RestaurantCard"
             app:strokeWidth="0dp">
 
             <LinearLayout
@@ -309,14 +322,6 @@
                 android:orientation="vertical"
                 android:padding="12dp">
 
-                <TextView
-                    android:id="@+id/rating_breakdown_title"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/rating_breakdown_title"
-                    android:textAppearance="?attr/textAppearanceTitleMedium"
-                    android:textColor="?attr/colorOnSurface"
-                    android:layout_marginBottom="8dp" />
 
                 <LinearLayout
                     android:id="@+id/rating_breakdown_container"

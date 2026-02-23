@@ -134,6 +134,22 @@ class CreateReviewFragment : Fragment() {
         getCurrentLocation()
         setupListeners()
         setupObservers()
+
+        // Check if restaurant was pre-selected (e.g. coming from restaurant detail)
+        val preselectedId = arguments?.getString("restaurantId")
+        val preselectedName = arguments?.getString("restaurantName")
+        val preselectedAddress = arguments?.getString("restaurantAddress")
+
+        if (!preselectedId.isNullOrBlank()) {
+            // Pre-fill the restaurant info
+            viewModel.setSelectedRestaurant(preselectedId, preselectedName, preselectedAddress)
+            binding.restaurantName.text = preselectedName ?: ""
+            binding.restaurantAddress.text = preselectedAddress ?: ""
+
+            // Hide the select restaurant button and label since restaurant is locked
+            binding.changeText.visibility = View.GONE
+            binding.selectRestaurantText.visibility = View.GONE
+        }
     }
 
     private fun setupListeners() {

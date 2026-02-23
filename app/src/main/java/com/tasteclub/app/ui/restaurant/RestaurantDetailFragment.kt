@@ -8,8 +8,10 @@ import android.widget.RatingBar
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.tasteclub.app.R
 import com.tasteclub.app.data.model.Restaurant
@@ -24,6 +26,7 @@ class RestaurantDetailFragment : Fragment() {
 
     private var restaurantId: String = ""
     private var restaurantName: String? = null
+    private var restaurantAddress: String? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -63,6 +66,17 @@ class RestaurantDetailFragment : Fragment() {
             nameTv.text = restaurantName
         }
 
+        // Wire review button to navigate to create review with pre-selected restaurant
+        val btnReview: MaterialButton = view.findViewById(R.id.btn_review)
+        btnReview.setOnClickListener {
+            val bundle = Bundle().apply {
+                putString("restaurantId", restaurantId)
+                putString("restaurantName", restaurantName)
+                putString("restaurantAddress", restaurantAddress)
+            }
+            findNavController().navigate(R.id.action_restaurant_detail_to_create_review, bundle)
+        }
+
         // Setup RecyclerView for reviews
         val reviewsRecycler: RecyclerView = view.findViewById(R.id.reviews_recycler_view)
         val reviewAdapter = ReviewAdapter()
@@ -79,6 +93,9 @@ class RestaurantDetailFragment : Fragment() {
             nameTv.text = restaurant.name.ifBlank { restaurantName ?: getString(R.string.restaurant_name_placeholder) }
             addressTv.text = restaurant.address.ifBlank { getString(R.string.value_address_default) }
             cuisineTv.text = restaurant.primaryType.ifBlank { getString(R.string.value_cuisine_default) }
+            // Track latest data for review button navigation
+            if (restaurant.name.isNotBlank()) restaurantName = restaurant.name
+            if (restaurant.address.isNotBlank()) restaurantAddress = restaurant.address
         }
 
         // Helper to update rating UI from reviews list
