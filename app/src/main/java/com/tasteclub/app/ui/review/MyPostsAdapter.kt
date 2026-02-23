@@ -26,15 +26,17 @@ import java.util.*
  * - Edit and delete click handlers
  */
 class MyPostsAdapter(
+    private val currentUserId: String,
     private val onEditClick: (Review) -> Unit,
     private val onDeleteClick: (Review) -> Unit,
+    private val onLikeClick: (Review) -> Unit,
     private val onRestaurantClick: ((restaurantId: String, restaurantName: String) -> Unit)? = null
 ) : ListAdapter<Review, MyPostsAdapter.MyPostViewHolder>(ReviewDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyPostViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_my_post_card, parent, false)
-        return MyPostViewHolder(view, onEditClick, onDeleteClick, onRestaurantClick)
+        return MyPostViewHolder(view, currentUserId, onEditClick, onDeleteClick, onLikeClick, onRestaurantClick)
     }
 
     override fun onBindViewHolder(holder: MyPostViewHolder, position: Int) {
@@ -47,8 +49,10 @@ class MyPostsAdapter(
      */
     class MyPostViewHolder(
         itemView: View,
+        private val currentUserId: String,
         private val onEditClick: (Review) -> Unit,
         private val onDeleteClick: (Review) -> Unit,
+        private val onLikeClick: (Review) -> Unit,
         private val onRestaurantClick: ((restaurantId: String, restaurantName: String) -> Unit)? = null
     ) : RecyclerView.ViewHolder(itemView) {
 
@@ -59,6 +63,8 @@ class MyPostsAdapter(
         private val dateTextView: TextView = itemView.findViewById(R.id.dateTextView)
         private val reviewTextView: TextView = itemView.findViewById(R.id.reviewTextView)
         private val deleteButton: MaterialButton = itemView.findViewById(R.id.deleteButton)
+        private val likeButton: ImageView = itemView.findViewById(R.id.likeButton)
+        private val likeCountTextView: TextView = itemView.findViewById(R.id.likeCountTextView)
 
         private val star1ImageView: ImageView = itemView.findViewById(R.id.star1ImageView)
         private val star2ImageView: ImageView = itemView.findViewById(R.id.star2ImageView)
@@ -111,6 +117,14 @@ class MyPostsAdapter(
             deleteButton.setOnClickListener {
                 onDeleteClick(review)
             }
+
+            // Like button
+            val isLiked = review.likedBy.contains(currentUserId)
+            likeButton.setImageResource(
+                if (isLiked) R.drawable.ic_heart_filled else R.drawable.ic_heart_outline
+            )
+            likeCountTextView.text = review.likedBy.size.toString()
+            likeButton.setOnClickListener { onLikeClick(review) }
         }
 
         /**

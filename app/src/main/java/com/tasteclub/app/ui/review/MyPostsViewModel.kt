@@ -1,5 +1,6 @@
 package com.tasteclub.app.ui.review
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -48,12 +49,28 @@ class MyPostsViewModel(
     private var deletingReviewId: String? = null
 
     // Cache the current user ID
-    private val currentUserId: String?
-        get() = authRepository.currentUserId()
+    val currentUserId: String
+        get() = authRepository.currentUserId() ?: ""
 
     // --------------------
     // Core Functions
     // --------------------
+
+    /**
+     * Toggle like on a review for the current user.
+     */
+    fun toggleLike(reviewId: String) {
+        val userId = currentUserId
+        if (userId.isBlank()) return
+
+        viewModelScope.launch {
+            try {
+                reviewRepository.toggleLike(reviewId, userId)
+            } catch (e: Exception) {
+                Log.e("MyPostsViewModel", "toggleLike failed for review=$reviewId user=$userId", e)
+            }
+        }
+    }
 
     /**
      * Fetch the current user's reviews from the repository.
@@ -61,7 +78,7 @@ class MyPostsViewModel(
      */
     fun getMyReviews() {
         val userId = currentUserId
-        if (userId.isNullOrBlank()) {
+        if (userId.isBlank()) {
             _myPostsState.value = MyPostsState.Error("User not authenticated")
             return
         }
@@ -136,8 +153,7 @@ class MyPostsViewModel(
      * Reset state to idle after showing error or success
      */
     fun resetState() {
-        val userId = currentUserId
-        if (userId != null) {
+        if (currentUserId.isNotBlank()) {
             getMyReviews()
         }
     }

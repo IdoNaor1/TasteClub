@@ -41,6 +41,7 @@ fun ReviewEntity.toDomain(): Review = Review(
     rating = rating,
     text = text,
     imageUrl = imageUrl,
+    likedBy = likedBy,
     createdAt = createdAt,
     lastUpdated = lastUpdated
 )
@@ -56,6 +57,7 @@ fun Review.toEntity(): ReviewEntity = ReviewEntity(
     rating = rating,
     text = text,
     imageUrl = imageUrl,
+    likedBy = likedBy,
     createdAt = createdAt,
     lastUpdated = lastUpdated
 )

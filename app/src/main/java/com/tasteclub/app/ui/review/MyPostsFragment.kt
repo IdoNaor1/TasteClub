@@ -81,8 +81,10 @@ class MyPostsFragment : Fragment() {
      */
     private fun setupRecyclerView() {
         adapter = MyPostsAdapter(
+            currentUserId = viewModel.currentUserId,
             onEditClick = { review -> onEditReview(review) },
             onDeleteClick = { review -> onDeleteReview(review) },
+            onLikeClick = { review -> viewModel.toggleLike(review.id) },
             onRestaurantClick = { restaurantId, restaurantName ->
                 val bundle = Bundle().apply {
                     putString("restaurantId", restaurantId)

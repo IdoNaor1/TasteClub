@@ -14,6 +14,9 @@ data class Review(
     val text: String = "",
     val imageUrl: String = "",
 
+    // Likes
+    val likedBy: List<String> = emptyList(),
+
     // Meta
     val createdAt: Long = 0L,
     val lastUpdated: Long = 0L

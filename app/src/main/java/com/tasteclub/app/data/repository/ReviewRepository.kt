@@ -113,6 +113,16 @@ class ReviewRepository(
         return saved
     }
 
+    // --------------------
+    // Like / Unlike
+    // --------------------
+
+    suspend fun toggleLike(reviewId: String, userId: String): Review {
+        val updated = firestoreSource.toggleLike(reviewId, userId)
+        reviewDao.upsert(updated.toEntity())
+        return updated
+    }
+
     suspend fun deleteReview(reviewId: String) {
         // Fetch the review before deletion so we can determine restaurantId and imageUrl
         val reviewBeforeDelete: Review? = try {

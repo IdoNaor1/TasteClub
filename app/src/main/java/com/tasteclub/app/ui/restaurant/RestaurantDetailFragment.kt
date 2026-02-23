@@ -8,6 +8,7 @@ import android.widget.RatingBar
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -18,6 +19,7 @@ import com.tasteclub.app.data.model.Restaurant
 import com.tasteclub.app.data.model.Review
 import com.tasteclub.app.ui.feed.ReviewAdapter
 import com.tasteclub.app.util.ServiceLocator
+import kotlinx.coroutines.launch
 
 /**
  * RestaurantDetailFragment - Restaurant detail screen (Phase 7)
@@ -79,7 +81,22 @@ class RestaurantDetailFragment : Fragment() {
 
         // Setup RecyclerView for reviews
         val reviewsRecycler: RecyclerView = view.findViewById(R.id.reviews_recycler_view)
-        val reviewAdapter = ReviewAdapter()
+        val authRepository = ServiceLocator.provideAuthRepository(requireContext())
+        val reviewRepo = ServiceLocator.provideReviewRepository(requireContext())
+        val currentUserId = authRepository.currentUserId() ?: ""
+
+        val reviewAdapter = ReviewAdapter(
+            currentUserId = currentUserId,
+            onLikeClick = { review ->
+                if (currentUserId.isNotBlank()) {
+                    lifecycleScope.launch {
+                        try {
+                            reviewRepo.toggleLike(review.id, currentUserId)
+                        } catch (_: Exception) { }
+                    }
+                }
+            }
+        )
 
         reviewsRecycler.apply {
             layoutManager = LinearLayoutManager(requireContext())
@@ -143,7 +160,6 @@ class RestaurantDetailFragment : Fragment() {
         }
 
         // Observe feed from repository and filter locally
-        val reviewRepo = ServiceLocator.provideReviewRepository(requireContext())
         reviewRepo.observeFeed().observe(viewLifecycleOwner) { reviews ->
             val filtered = if (restaurantId.isNotBlank()) {
                 reviews.filter { it.restaurantId == restaurantId }

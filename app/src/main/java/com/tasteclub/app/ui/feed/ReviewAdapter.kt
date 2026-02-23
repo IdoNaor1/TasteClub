@@ -19,6 +19,8 @@ import java.util.Locale
  * Uses ListAdapter with shared ReviewDiffCallback for efficient updates
  */
 class ReviewAdapter(
+    private val currentUserId: String,
+    private val onLikeClick: (Review) -> Unit,
     private val onRestaurantClick: ((restaurantId: String, restaurantName: String) -> Unit)? = null
 ) : ListAdapter<Review, ReviewAdapter.ReviewViewHolder>(ReviewDiffCallback()) {
 
@@ -114,6 +116,14 @@ class ReviewAdapter(
 
                 // Review text
                 reviewTextView.text = review.text
+
+                // Like button
+                val isLiked = review.likedBy.contains(currentUserId)
+                likeButton.setImageResource(
+                    if (isLiked) R.drawable.ic_heart_filled else R.drawable.ic_heart_outline
+                )
+                likeCountTextView.text = review.likedBy.size.toString()
+                likeButton.setOnClickListener { onLikeClick(review) }
             }
         }
 

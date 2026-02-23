@@ -27,6 +27,8 @@ data class ReviewEntity(
     val text: String,
     val imageUrl: String,
 
+    val likedBy: List<String>,
+
     val createdAt: Long,
     val lastUpdated: Long
 )
