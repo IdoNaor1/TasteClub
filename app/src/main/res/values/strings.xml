@@ -30,7 +30,7 @@
     <string name="no_account">Don\'t have an account?</string>
 
     <!-- Register -->
-    <string name="forgot_password_explanation">Enter your email address and we\'ll send you a link to reset your password"</string>
+    <string name="forgot_password_explanation">Enter your email address and we\'ll send you a link to reset your password</string>
 
     <!-- Register -->
     <string name="back_to_login">Back to Login</string>
@@ -66,7 +66,6 @@
 
     <!-- My Posts -->
     <string name="my_reviews">My Reviews</string>
-    <string name="reviews_count">%1$d reviews</string>
     <plurals name="reviews_count">
         <item quantity="one">%1$d review</item>
         <item quantity="other">%1$d reviews</item>
@@ -90,7 +89,7 @@
     <string name="manage_notifications">Manage notifications</string>
     <string name="logout">Logout</string>
     <string name="logout_confirmation_title">Logout</string>
-    <string name="logout_confirmation_message">Are you sure you want to logout? You\'ll need to sign in again to access your account.</string>
+    <string name="logout_confirmation_message">Are you sure you want to log out? You\'ll need to sign in again to access your account.</string>
     <string name="app_version">TasteClub v1.0.0</string>
     <string name="terms">Terms</string>
     <string name="privacy">Privacy</string>
@@ -119,4 +118,61 @@
     <string name="personalized_suggestions">Personalized suggestions based on your tastes</string>
     <string name="save_preferences">Save Preferences</string>
     <string name="preferences_saved">Preferences saved</string>
+
+    <!-- Create Review -->
+    <string name="select_restaurant">Select Restaurant</string>
+    <string name="change_restaurant">Change Restaurant</string>
+    <string name="restaurant_name_placeholder">The Restaurant\'s Name</string>
+    <string name="restaurant_address_placeholder">The Restaurant\'s Address</string>
+    <string name="rating">Rating</string>
+    <string name="review_label">Your Review</string>
+    <string name="review_placeholder">Share your experience…</string>
+    <string name="add_photos">Add Photos (Optional)</string>
+    <string name="add_photos_tap">Tap to add photos</string>
+    <string name="post_review">Post Review</string>
+    <string name="location_icon_desc">Location icon</string>
+    <string name="selected_photo_preview_desc">Selected photo preview</string>
+    <string name="camera_icon_desc">Camera icon</string>
+
+    <!-- Edit Review -->
+    <string name="update_review">Update Review</string>
+    <string name="replace_photo">Replace Photo</string>
+    <string name="remove_photo">Remove Photo</string>
+    <string name="updating">Updating…</string>
+
+    <!-- Restaurant Detail -->
+    <string name="address_icon_desc">Address icon</string>
+    <string name="cuisine_icon_desc">Cuisine icon</string>
+
+    <!-- Layout-specific strings for fragment_restaurant_detail.xml -->
+    <string name="rating_score_default">4.5</string>
+    <string name="rating_count_default">Based on 127 reviews</string>
+    <string name="label_address">Address</string>
+    <string name="value_address_default">123 Main St, Downtown</string>
+    <string name="label_cuisine">Cuisine</string>
+    <string name="value_cuisine_default">Fast Food</string>
+    <string name="btn_review">Review</string>
+    <string name="photos_title">Photos (5)</string>
+    <string name="rating_breakdown_title">Rating Breakdown</string>
+
+    <string name="rating_label_5">5</string>
+    <string name="rating_count_5">85 reviews</string>
+    <string name="rating_label_4">4</string>
+    <string name="rating_count_4">24 reviews</string>
+    <string name="rating_label_3">3</string>
+    <string name="rating_count_3">10 reviews</string>
+    <string name="rating_label_2">2</string>
+    <string name="rating_count_2">5 reviews</string>
+    <string name="rating_label_1">1</string>
+    <string name="rating_count_1">3 reviews</string>
+
+    <!-- Reviews Section -->
+    <string name="reviews_section_title">Reviews</string>
+
+    <!-- Plurals for rating count display -->
+    <plurals name="rating_count_format">
+        <item quantity="one">%1$d review</item>
+        <item quantity="other">%1$d reviews</item>
+    </plurals>
+
 </resources>

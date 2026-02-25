@@ -18,7 +18,9 @@ import java.util.Locale
  * ReviewAdapter - Adapter for displaying review cards in RecyclerView
  * Uses ListAdapter with shared ReviewDiffCallback for efficient updates
  */
-class ReviewAdapter : ListAdapter<Review, ReviewAdapter.ReviewViewHolder>(ReviewDiffCallback()) {
+class ReviewAdapter(
+    private val onRestaurantClick: ((restaurantId: String, restaurantName: String) -> Unit)? = null
+) : ListAdapter<Review, ReviewAdapter.ReviewViewHolder>(ReviewDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ReviewViewHolder {
         val binding = ItemReviewCardBinding.inflate(
@@ -59,28 +61,49 @@ class ReviewAdapter : ListAdapter<Review, ReviewAdapter.ReviewViewHolder>(Review
                 dateTextView.text = dateFormat.format(review.createdAt)
 
                 // Load user avatar with Picasso
-                Picasso.get()
-                    .load(review.userProfileImageUrl)
-                    .placeholder(R.drawable.ic_user_placeholder)
-                    .error(R.drawable.ic_user_placeholder)
-                    .fit()
-                    .centerCrop()
-                    .into(userAvatarImageView)
+                if (!review.userProfileImageUrl.isNullOrBlank()) {
+                    try {
+                        Picasso.get()
+                            .load(review.userProfileImageUrl)
+                            .placeholder(R.drawable.ic_user_placeholder)
+                            .error(R.drawable.ic_user_placeholder)
+                            .fit()
+                            .centerCrop()
+                            .into(userAvatarImageView)
+                    } catch (e: IllegalArgumentException) {
+                        // In case Picasso rejects the path, fallback to placeholder
+                        userAvatarImageView.setImageResource(R.drawable.ic_user_placeholder)
+                    }
+                } else {
+                    userAvatarImageView.setImageResource(R.drawable.ic_user_placeholder)
+                }
 
                 // Restaurant info
                 restaurantNameTextView.text = review.restaurantName
                 restaurantAddressTextView.text = review.restaurantAddress
 
+                // Restaurant name click -> navigate to restaurant detail
+                restaurantNameTextView.setOnClickListener {
+                    if (review.restaurantId.isNotBlank()) {
+                        onRestaurantClick?.invoke(review.restaurantId, review.restaurantName)
+                    }
+                }
+
                 // Load restaurant image with Picasso
-                if (review.imageUrl.isNotEmpty()) {
+                if (!review.imageUrl.isNullOrBlank()) {
                     restaurantImageView.visibility = View.VISIBLE
-                    Picasso.get()
-                        .load(review.imageUrl)
-                        .placeholder(R.drawable.image_placeholder)
-                        .error(R.drawable.image_placeholder)
-                        .resize(800, 0)
-                        .centerCrop()
-                        .into(restaurantImageView)
+                    try {
+                        Picasso.get()
+                            .load(review.imageUrl)
+                            .placeholder(R.drawable.image_placeholder)
+                            .error(R.drawable.image_placeholder)
+                            .resize(800, 0)
+                            .centerCrop()
+                            .into(restaurantImageView)
+                    } catch (e: IllegalArgumentException) {
+                        // If path invalid, show placeholder instead of crashing
+                        restaurantImageView.setImageResource(R.drawable.image_placeholder)
+                    }
                 } else {
                     // Hide image if not available
                     restaurantImageView.visibility = View.GONE

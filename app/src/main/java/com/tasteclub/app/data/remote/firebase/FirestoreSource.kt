@@ -122,12 +122,69 @@ class FirestoreSource(
         )
 
         docRef.set(updated).await()
+
+        // Recompute and update restaurant aggregates
+        if (updated.restaurantId.isNotBlank()) {
+            computeAndUpdateRestaurantAggregates(updated.restaurantId)
+        }
+
         return updated
     }
 
     suspend fun deleteReview(reviewId: String) {
         require(reviewId.isNotBlank()) { "reviewId must not be blank" }
+
+        // Read the review first to know the restaurantId for aggregate recalculation
+        val snap = reviewsCol.document(reviewId).get().await()
+        val review = snap.toObject(Review::class.java)
         reviewsCol.document(reviewId).delete().await()
+
+        if (review?.restaurantId?.isNotBlank() == true) {
+            computeAndUpdateRestaurantAggregates(review.restaurantId)
+        }
+    }
+
+    private suspend fun computeAndUpdateRestaurantAggregates(restaurantId: String) {
+        try {
+            val q = reviewsCol.whereEqualTo("restaurantId", restaurantId)
+            val snap = q.get().await()
+            val reviews = snap.toObjects(Review::class.java)
+            val count = reviews.size
+            val average = if (count > 0) reviews.map { it.rating }.average() else 0.0
+
+            // Partial update to restaurant doc: averageRating and numReviews + lastUpdated
+            val updates = mutableMapOf<String, Any>(
+                "averageRating" to average,
+                "numReviews" to count,
+                "lastUpdated" to nowMillis()
+            )
+
+            // If restaurant doc doesn't exist, set minimal fields
+            val docRef = restaurantsCol.document(restaurantId)
+            val existing = docRef.get().await()
+            if (!existing.exists()) {
+                // Create a minimal restaurant document so aggregates exist
+                val minimal = Restaurant(
+                    id = restaurantId,
+                    name = existing.getString("name") ?: "",
+                    addressComponents = null,
+                    address = existing.getString("address") ?: "",
+                    lat = existing.getDouble("lat") ?: 0.0,
+                    lng = existing.getDouble("lng") ?: 0.0,
+                    photoUrl = existing.getString("photoUrl") ?: "",
+                    primaryType = existing.getString("primaryType") ?: "",
+                    averageRating = average,
+                    numReviews = count,
+                    createdAt = nowMillis(),
+                    lastUpdated = nowMillis()
+                )
+                docRef.set(minimal).await()
+            } else {
+                docRef.update(updates).await()
+            }
+        } catch (e: Exception) {
+            Log.w("FirestoreDebugging", "Failed to update restaurant aggregates for $restaurantId: ${e.message}")
+        }
     }
 
     /**
@@ -213,21 +270,12 @@ class FirestoreSource(
         return snap.toObject(Restaurant::class.java)
     }
 
-    /**
-     * For restaurants, you might store minimal cached info (id, name, address...).
-     * Google Places will still be your "source" for search/details.
-     */
     suspend fun upsertRestaurant(restaurant: Restaurant) {
         val now = nowMillis()
         val id = restaurant.id
         require(id.isNotBlank()) { "Restaurant id must not be blank" }
 
-        val existing = restaurantsCol.document(id).get().await()
-        val createdAt = if (existing.exists()) {
-            restaurant.createdAt.takeIf { it > 0 } ?: existing.getLong("createdAt") ?: now
-        } else {
-            now
-        }
+        val createdAt = restaurant.createdAt.takeIf { it > 0 } ?: now
 
         val updated = restaurant.copy(
             createdAt = createdAt,

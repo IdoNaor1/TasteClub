@@ -5,8 +5,10 @@ import com.tasteclub.app.data.local.TasteClubDatabase
 import com.tasteclub.app.data.remote.firebase.FirebaseAuthSource
 import com.tasteclub.app.data.remote.firebase.FirebaseStorageSource
 import com.tasteclub.app.data.remote.firebase.FirestoreSource
+import com.tasteclub.app.data.remote.places.PlacesService
 import com.tasteclub.app.data.repository.AuthRepository
 import com.tasteclub.app.data.repository.ReviewRepository
+import com.tasteclub.app.data.repository.RestaurantRepository
 
 object ServiceLocator {
 
@@ -28,6 +30,11 @@ object ServiceLocator {
     @Volatile
     private var reviewRepository: ReviewRepository? = null
 
+    @Volatile
+    private var restaurantRepository: RestaurantRepository? = null
+
+    private var placesService: PlacesService? = null
+
     // --------------------
     // Public API
     // --------------------
@@ -47,8 +54,18 @@ object ServiceLocator {
             reviewRepository ?: ReviewRepository(
                 firestoreSource = provideFirestoreSource(),
                 storageSource = provideStorageSource(),
-                reviewDao = provideDatabase(context).reviewDao()
+                reviewDao = provideDatabase(context).reviewDao(),
+                restaurantDao = provideDatabase(context).restaurantDao()
             ).also { reviewRepository = it }
+        }
+    }
+
+    fun provideRestaurantRepository(context: Context): RestaurantRepository {
+        return restaurantRepository ?: synchronized(this) {
+            restaurantRepository ?: RestaurantRepository(
+                firestoreSource = provideFirestoreSource(),
+                restaurantDao = provideDatabase(context).restaurantDao()
+            ).also { restaurantRepository = it }
         }
     }
 
@@ -80,16 +97,24 @@ object ServiceLocator {
         }
     }
 
+    fun providePlacesService(context: Context): PlacesService {
+        return placesService ?: synchronized(this) {
+            val instance = PlacesService(context.applicationContext)
+            placesService = instance
+            instance
+        }
+    }
+
     /**
      * Optional: useful for tests or "logout and reset app state"
      */
     fun resetForTesting() {
         authRepository = null
         reviewRepository = null
+        restaurantRepository = null
         authSource = null
         firestoreSource = null
         storageSource = null
         database = null
     }
 }
-

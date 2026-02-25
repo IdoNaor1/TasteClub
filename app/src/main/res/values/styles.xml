@@ -54,6 +54,22 @@
         <item name="android:padding">0dp</item> </style>
 
     <!-- ========================= -->
+    <!-- Material Card Views -->
+    <!-- ========================= -->
+
+    <style name="Widget.TasteClub.RestaurantCard" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardBackgroundColor">@color/surface_card</item>
+    </style>
+
+    <style name="Widget.TasteClub.AddPhotosCard" parent="Widget.Material3.CardView.Outlined">
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardBackgroundColor">@android:color/transparent</item>
+        <item name="strokeColor">@color/text_secondary</item>
+        <item name="strokeWidth">1dp</item>
+    </style>
+
+    <!-- ========================= -->
     <!-- Bottom Navigation -->
     <!-- ========================= -->
 
@@ -65,7 +81,7 @@
         <item name="itemRippleColor">@color/primary_brown</item>
     </style>
 
-    <style name="ThemeOverlay.TasteClub.BottomNavigationView" parent="">
+    <style name="ThemeOverlay.TasteClub.BottomNavigationView" parent="ThemeOverlay.Material3">
         <item name="colorPrimary">@color/primary_brown</item>
         <item name="colorOnSurface">@color/text_secondary</item>
     </style>
@@ -96,6 +112,11 @@
 
     <style name="TextAppearance.TasteClub.Link" parent="TextAppearance.Material3.LabelLarge">
         <item name="android:textColor">?attr/colorPrimary</item>
+    </style>
+
+    <style name="TextAppearance.TasteClub.Create_review_label" parent="TextAppearance.Material3.LabelLarge">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">@color/text_primary</item>
     </style>
 
 </resources>

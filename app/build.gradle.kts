@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.navigation.safeargs)
     id("com.google.gms.google-services")
     id("kotlin-kapt")
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
 }
 
 android {
@@ -12,7 +13,7 @@ android {
 
     defaultConfig {
         applicationId = "com.tasteclub.app"
-        minSdk = 33
+        minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -37,8 +38,14 @@ android {
         jvmTarget = "11"
     }
     buildFeatures {
+        buildConfig = true
         viewBinding = true
     }
+}
+
+secrets {
+    propertiesFileName = "secrets.properties"
+    defaultPropertiesFileName = "secrets.defaults.properties"
 }
 
 dependencies {
@@ -53,10 +60,10 @@ dependencies {
     implementation("androidx.navigation:navigation-ui-ktx:2.9.0")
 
 
-    implementation("androidx.room:room-runtime:2.6.1")
-    implementation("androidx.room:room-ktx:2.6.1")
+    implementation("androidx.room:room-runtime:2.8.4")
+    implementation("androidx.room:room-ktx:2.8.4")
     implementation(libs.androidx.junit.ktx)
-    kapt("androidx.room:room-compiler:2.6.1")
+    kapt("androidx.room:room-compiler:2.8.4")
 
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.auth)
@@ -72,4 +79,10 @@ dependencies {
     // SwipeRefreshLayout for pull-to-refresh
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 
+    // Places and Maps SDKs
+    implementation("com.google.android.libraries.places:places:5.0.0")
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+
+    // Gson for JSON serialization
+    implementation(libs.gson)
 }

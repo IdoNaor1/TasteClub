@@ -1,6 +1,7 @@
 package com.tasteclub.app.data.local.entity
 
 import com.tasteclub.app.data.model.Review
+import com.tasteclub.app.data.model.Restaurant
 import com.tasteclub.app.data.model.User
 
 // -------- User --------
@@ -55,6 +56,37 @@ fun Review.toEntity(): ReviewEntity = ReviewEntity(
     rating = rating,
     text = text,
     imageUrl = imageUrl,
+    createdAt = createdAt,
+    lastUpdated = lastUpdated
+)
+
+// -------- Restaurant --------
+fun RestaurantEntity.toDomain(): Restaurant = Restaurant(
+    id = id,
+    name = name,
+    addressComponents = addressComponents,
+    address = address,
+    lat = lat,
+    lng = lng,
+    photoUrl = photoUrl,
+    primaryType = primaryType,
+    averageRating = averageRating,
+    numReviews = numReviews,
+    createdAt = createdAt,
+    lastUpdated = lastUpdated
+)
+
+fun Restaurant.toEntity(): RestaurantEntity = RestaurantEntity(
+    id = id,
+    name = name,
+    addressComponents = addressComponents,
+    address = address,
+    lat = lat,
+    lng = lng,
+    photoUrl = photoUrl,
+    primaryType = primaryType,
+    averageRating = averageRating,
+    numReviews = numReviews,
     createdAt = createdAt,
     lastUpdated = lastUpdated
 )

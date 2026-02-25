@@ -60,13 +60,23 @@
             android:src="@drawable/image_placeholder"
             android:contentDescription="@string/restaurant_image"
             android:layout_marginBottom="8dp" />
-        <TextView
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/restaurantNameTextView"
-            android:layout_width="match_parent"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/primary_brown"
             android:textSize="18sp"
             android:textStyle="bold"
+            android:textAllCaps="false"
+            android:minHeight="0dp"
+            android:minWidth="0dp"
+            android:paddingStart="0dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="0dp"
+            android:paddingBottom="0dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
             android:layout_marginBottom="4dp"
             tools:text="The Golden Spoon" />
         <TextView

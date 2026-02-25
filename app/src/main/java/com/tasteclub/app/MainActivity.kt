@@ -1,6 +1,7 @@
 package com.tasteclub.app
 
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -11,6 +12,7 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
+import com.google.android.libraries.places.api.Places
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.tasteclub.app.databinding.ActivityMainBinding
 import com.tasteclub.app.util.ServiceLocator
@@ -65,6 +67,8 @@ class MainActivity : AppCompatActivity() {
 
         // Observe auth state for navigation
         observeAuthState()
+
+        //initPlaces()
     }
 
     /**
@@ -175,6 +179,18 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun initPlaces() {
+        val apiKey = BuildConfig.PLACES_API_KEY
+
+        if (apiKey.isEmpty() || apiKey == "DEFAULT_API_KEY") {
+            Log.e("Places test", "No api key")
+            finish()
+            return
+        }
+
+        Places.initializeWithNewPlacesApiEnabled(applicationContext, apiKey)
     }
 
     /**

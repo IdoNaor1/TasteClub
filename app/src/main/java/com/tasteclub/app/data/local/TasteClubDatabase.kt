@@ -4,20 +4,25 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import com.tasteclub.app.data.local.dao.ReviewDao
 import com.tasteclub.app.data.local.dao.UserDao
+import com.tasteclub.app.data.local.dao.RestaurantDao
 import com.tasteclub.app.data.local.entity.ReviewEntity
 import com.tasteclub.app.data.local.entity.UserEntity
+import com.tasteclub.app.data.local.entity.RestaurantEntity
 
 @Database(
-    entities = [UserEntity::class, ReviewEntity::class],
-    version = 1,
+    entities = [UserEntity::class, ReviewEntity::class, RestaurantEntity::class],
+    version = 3,
     exportSchema = false
 )
+@TypeConverters(Converters::class)
 abstract class TasteClubDatabase : RoomDatabase() {
 
     abstract fun userDao(): UserDao
     abstract fun reviewDao(): ReviewDao
+    abstract fun restaurantDao(): RestaurantDao
 
     companion object {
         @Volatile
@@ -31,7 +36,7 @@ abstract class TasteClubDatabase : RoomDatabase() {
                     "tasteclub_db"
                 )
                     // for development - should not be used in production
-                    .fallbackToDestructiveMigration()
+                    .fallbackToDestructiveMigration(true)
                     .build()
 
                 INSTANCE = instance

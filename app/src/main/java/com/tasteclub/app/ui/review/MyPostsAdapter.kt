@@ -27,13 +27,14 @@ import java.util.*
  */
 class MyPostsAdapter(
     private val onEditClick: (Review) -> Unit,
-    private val onDeleteClick: (Review) -> Unit
+    private val onDeleteClick: (Review) -> Unit,
+    private val onRestaurantClick: ((restaurantId: String, restaurantName: String) -> Unit)? = null
 ) : ListAdapter<Review, MyPostsAdapter.MyPostViewHolder>(ReviewDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyPostViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_my_post_card, parent, false)
-        return MyPostViewHolder(view, onEditClick, onDeleteClick)
+        return MyPostViewHolder(view, onEditClick, onDeleteClick, onRestaurantClick)
     }
 
     override fun onBindViewHolder(holder: MyPostViewHolder, position: Int) {
@@ -47,12 +48,13 @@ class MyPostsAdapter(
     class MyPostViewHolder(
         itemView: View,
         private val onEditClick: (Review) -> Unit,
-        private val onDeleteClick: (Review) -> Unit
+        private val onDeleteClick: (Review) -> Unit,
+        private val onRestaurantClick: ((restaurantId: String, restaurantName: String) -> Unit)? = null
     ) : RecyclerView.ViewHolder(itemView) {
 
         private val restaurantImageView: ImageView = itemView.findViewById(R.id.restaurantImageView)
         private val editFab: FloatingActionButton = itemView.findViewById(R.id.editFab)
-        private val restaurantNameTextView: TextView = itemView.findViewById(R.id.restaurantNameTextView)
+        private val restaurantNameTextView: MaterialButton = itemView.findViewById(R.id.restaurantNameTextView)
         private val restaurantAddressTextView: TextView = itemView.findViewById(R.id.restaurantAddressTextView)
         private val dateTextView: TextView = itemView.findViewById(R.id.dateTextView)
         private val reviewTextView: TextView = itemView.findViewById(R.id.reviewTextView)
@@ -70,6 +72,13 @@ class MyPostsAdapter(
             // Set restaurant details
             restaurantNameTextView.text = review.restaurantName
             restaurantAddressTextView.text = review.restaurantAddress
+
+            // Restaurant name click -> navigate to restaurant detail
+            restaurantNameTextView.setOnClickListener {
+                if (review.restaurantId.isNotBlank()) {
+                    onRestaurantClick?.invoke(review.restaurantId, review.restaurantName)
+                }
+            }
 
             // Format date as "Jan 15, 2026"
             val date = Date(review.createdAt)
