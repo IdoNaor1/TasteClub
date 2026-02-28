@@ -133,4 +133,21 @@
         <item name="android:textColor">@color/text_primary</item>
     </style>
 
+
+    <!-- Headline: Restaurant name on cards -->
+    <style name="TextStyle.Headline" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <!-- Body: Review text -->
+    <style name="TextStyle.Body" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textColor">@color/text_secondary</item>
+    </style>
+
+    <!-- Caption: Username, date -->
+    <style name="TextStyle.Caption" parent="TextAppearance.Material3.LabelSmall">
+        <item name="android:textColor">@color/text_secondary</item>
+    </style>
+
 </resources>

@@ -6,6 +6,8 @@
         <!-- Brand colors -->
         <item name="colorPrimary">@color/primary_brown</item>
         <item name="colorOnPrimary">@android:color/white</item>
+        <item name="colorPrimaryContainer">@color/surface_card</item>
+        <item name="colorOnPrimaryContainer">@color/text_primary</item>
 
         <item name="colorSecondary">@color/accent_caramel</item>
         <item name="colorOnSecondary">@android:color/white</item>

@@ -11,6 +11,9 @@
     <color name="text_primary">#3E2C23</color>
     <color name="text_secondary">#6F5B4F</color>
     <color name="star_amber">#F59E0B</color>
+    <!-- Star rating -->
+    <color name="star_empty">#4D6F5B4F</color>
+
     <!-- Error colors for destructive actions -->
     <color name="error_red">#B00020</color>
     <color name="on_error_red">#FFFFFFFF</color>
