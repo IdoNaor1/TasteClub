@@ -109,14 +109,28 @@
                 app:paddingEnd="8dp" />
 
             <!-- log in button -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/signInButton"
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_marginTop="16dp"
-                android:text="@string/login"
-                >
-            </com.google.android.material.button.MaterialButton>
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/signInButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:text="@string/login" />
+
+                <com.google.android.material.progressindicator.CircularProgressIndicator
+                    android:id="@+id/signInProgress"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center"
+                    android:visibility="gone"
+                    app:indicatorColor="@android:color/white"
+                    app:trackColor="@android:color/transparent"
+                    app:indicatorSize="24dp" />
+
+            </FrameLayout>
 
             <!-- Bottom row -->
             <LinearLayout

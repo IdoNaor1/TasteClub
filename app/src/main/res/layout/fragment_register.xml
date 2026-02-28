@@ -171,14 +171,28 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Register button -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/registerButton"
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_marginTop="16dp"
-                android:text="@string/register"
-                >
-            </com.google.android.material.button.MaterialButton>
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/registerButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:text="@string/register" />
+
+                <com.google.android.material.progressindicator.CircularProgressIndicator
+                    android:id="@+id/registerProgress"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center"
+                    android:visibility="gone"
+                    app:indicatorColor="@android:color/white"
+                    app:trackColor="@android:color/transparent"
+                    app:indicatorSize="24dp" />
+
+            </FrameLayout>
 
         </LinearLayout>
     </ScrollView>
