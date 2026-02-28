@@ -87,7 +87,7 @@ class ProfileViewModel(
                 if (userId != null) {
                     _profileState.value = ProfileState.Loading
                     authRepository.refreshUserFromRemote(userId)
-                    // Success will be emitted via currentUser LiveData
+                    _profileState.value = ProfileState.Idle
                 } else {
                     _profileState.value = ProfileState.Error("User not logged in")
                 }

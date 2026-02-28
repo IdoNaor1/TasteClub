@@ -1,7 +1,6 @@
 package com.tasteclub.app.ui.profile
 
 import android.Manifest
-import android.app.AlertDialog
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
@@ -14,6 +13,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.squareup.picasso.Picasso
 import com.tasteclub.app.R
 import com.tasteclub.app.databinding.FragmentProfileBinding
@@ -42,6 +42,8 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             ServiceLocator.provideReviewRepository(requireContext())
         )
     }
+
+    private lateinit var loadingProgressBar: android.widget.ProgressBar
 
     // Camera permission launcher
     private val cameraPermissionLauncher = registerForActivityResult(
@@ -74,6 +76,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentProfileBinding.bind(view)
+        loadingProgressBar = view.findViewById(R.id.loadingProgressBar)
 
         setupClickListeners()
         observeViewModel()
@@ -153,43 +156,52 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         viewModel.profileState.observe(viewLifecycleOwner) { state ->
             when (state) {
                 is ProfileViewModel.ProfileState.Loading -> {
-                    // Could show progress bar if needed
+                    loadingProgressBar.visibility = View.VISIBLE
+                }
+                is ProfileViewModel.ProfileState.Uploading -> {
+                    loadingProgressBar.visibility = View.VISIBLE
                 }
                 is ProfileViewModel.ProfileState.Success -> {
+                    loadingProgressBar.visibility = View.GONE
                     Toast.makeText(context, R.string.profile_updated, Toast.LENGTH_SHORT).show()
                     viewModel.resetState()
                 }
                 is ProfileViewModel.ProfileState.Error -> {
+                    loadingProgressBar.visibility = View.GONE
                     Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
                     viewModel.resetState()
                 }
-                is ProfileViewModel.ProfileState.Uploading -> {
-                    // Could show progress with state.progress
-                }
                 is ProfileViewModel.ProfileState.UploadSuccess -> {
+                    loadingProgressBar.visibility = View.GONE
                     Toast.makeText(context, R.string.profile_picture_updated, Toast.LENGTH_SHORT).show()
                     viewModel.resetState()
                 }
-                else -> { /* Idle */ }
+                else -> {
+                    loadingProgressBar.visibility = View.GONE
+                }
             }
         }
     }
 
     /**
-     * Show photo upload options bottom sheet
+     * Show photo upload options dialog
      */
     private fun showPhotoUploadOptions() {
-        val bottomSheet = PhotoUploadBottomSheet()
-        bottomSheet.setOnPhotoSourceSelectedListener(object : PhotoUploadBottomSheet.OnPhotoSourceSelectedListener {
-            override fun onCameraSelected() {
-                checkCameraPermissionAndLaunch()
-            }
+        val options = arrayOf(
+            getString(R.string.take_photo),
+            getString(R.string.choose_from_gallery),
+            getString(R.string.cancel)
+        )
 
-            override fun onGallerySelected() {
-                pickImageLauncher.launch("image/*")
+        MaterialAlertDialogBuilder(requireContext())
+            .setItems(options) { dialog, which ->
+                when (options[which]) {
+                    getString(R.string.take_photo) -> checkCameraPermissionAndLaunch()
+                    getString(R.string.choose_from_gallery) -> pickImageLauncher.launch("image/*")
+                    else -> dialog.dismiss()
+                }
             }
-        })
-        bottomSheet.show(childFragmentManager, "PhotoUploadBottomSheet")
+            .show()
     }
 
     /**
@@ -206,7 +218,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             }
             shouldShowRequestPermissionRationale(Manifest.permission.CAMERA) -> {
                 // Show rationale dialog
-                AlertDialog.Builder(requireContext())
+                MaterialAlertDialogBuilder(requireContext())
                     .setTitle("Camera Permission Required")
                     .setMessage("Camera permission is needed to take photos for your profile picture.")
                     .setPositiveButton("Grant") { _, _ ->
@@ -299,7 +311,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
      * Show logout confirmation dialog
      */
     private fun showLogoutConfirmation() {
-        AlertDialog.Builder(requireContext())
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.logout_confirmation_title)
             .setMessage(R.string.logout_confirmation_message)
             .setPositiveButton(R.string.logout) { _, _ ->

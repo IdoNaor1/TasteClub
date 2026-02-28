@@ -136,6 +136,7 @@
 
     <!-- Edit Review -->
     <string name="update_review">Update Review</string>
+    <string name="add_photo">Add Photo</string>
     <string name="replace_photo">Replace Photo</string>
     <string name="remove_photo">Remove Photo</string>
     <string name="updating">Updating…</string>
