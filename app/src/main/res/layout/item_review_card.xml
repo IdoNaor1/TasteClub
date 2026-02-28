@@ -12,13 +12,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="@dimen/spacing_md">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="8dp">
+            android:layout_marginBottom="@dimen/spacing_sm">
             <de.hdodenhof.circleimageview.CircleImageView
                 android:id="@+id/userAvatarImageView"
                 android:layout_width="40dp"
@@ -32,7 +32,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical"
-                android:layout_marginStart="12dp">
+                android:layout_marginStart="@dimen/spacing_sm">
                 <TextView
                     android:id="@+id/userNameTextView"
                     android:layout_width="wrap_content"
@@ -59,7 +59,7 @@
             android:background="@color/surface_card"
             android:src="@drawable/image_placeholder"
             android:contentDescription="@string/restaurant_image"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="@dimen/spacing_sm" />
         <com.google.android.material.button.MaterialButton
             android:id="@+id/restaurantNameTextView"
             style="@style/Widget.Material3.Button.TextButton"
@@ -85,19 +85,20 @@
             android:layout_height="wrap_content"
             android:textColor="@color/text_secondary"
             android:textSize="14sp"
-            android:layout_marginBottom="8dp"
+            android:layout_marginBottom="@dimen/spacing_sm"
             tools:text="123 Main St, New York, NY" />
         <LinearLayout
             android:id="@+id/starRatingLayout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="8dp">
+            android:layout_marginBottom="@dimen/spacing_sm">
             <ImageView
                 android:id="@+id/star1ImageView"
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:src="@drawable/ic_star_filled"
+                app:tint="@color/star_amber"
                 android:contentDescription="@string/rating_star"
                 android:layout_marginEnd="4dp" />
             <ImageView
@@ -105,6 +106,7 @@
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:src="@drawable/ic_star_filled"
+                app:tint="@color/star_amber"
                 android:contentDescription="@string/rating_star"
                 android:layout_marginEnd="4dp" />
             <ImageView
@@ -112,6 +114,7 @@
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:src="@drawable/ic_star_filled"
+                app:tint="@color/star_amber"
                 android:contentDescription="@string/rating_star"
                 android:layout_marginEnd="4dp" />
             <ImageView
@@ -119,6 +122,7 @@
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:src="@drawable/ic_star_filled"
+                app:tint="@color/star_amber"
                 android:contentDescription="@string/rating_star"
                 android:layout_marginEnd="4dp" />
             <ImageView
@@ -126,6 +130,7 @@
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:src="@drawable/ic_star_filled"
+                app:tint="@color/star_amber"
                 android:contentDescription="@string/rating_star" />
         </LinearLayout>
         <TextView
