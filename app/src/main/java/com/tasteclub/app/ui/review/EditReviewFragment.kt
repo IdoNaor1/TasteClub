@@ -1,5 +1,7 @@
 package com.tasteclub.app.ui.review
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -10,11 +12,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.RatingBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -44,9 +48,12 @@ class EditReviewFragment : Fragment() {
     private lateinit var addPhotosCard: View
     private lateinit var updateReviewButton: MaterialButton
     private lateinit var deleteReviewButton: MaterialButton
+    private lateinit var loadingProgressBar: ProgressBar
 
     // Image picker
     private lateinit var pickImageLauncher: ActivityResultLauncher<String>
+    private lateinit var cameraPermissionLauncher: ActivityResultLauncher<String>
+    private lateinit var takePictureLauncher: ActivityResultLauncher<Void?>
     private var selectedImageBitmap: Bitmap? = null
     private var removeImageFlag: Boolean = false
 
@@ -98,6 +105,25 @@ class EditReviewFragment : Fragment() {
                 }
             }
         }
+
+        // Register camera launcher
+        takePictureLauncher = registerForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
+            if (bitmap != null) {
+                selectedImageBitmap = bitmap
+                removeImageFlag = false
+                selectedPhotoImageView.visibility = View.VISIBLE
+                selectedPhotoImageView.setImageBitmap(bitmap)
+            }
+        }
+
+        // Register camera permission launcher
+        cameraPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            if (isGranted) {
+                takePictureLauncher.launch(null)
+            } else {
+                Toast.makeText(requireContext(), "Camera permission is required to take photos", Toast.LENGTH_LONG).show()
+            }
+        }
     }
 
     override fun onCreateView(
@@ -135,6 +161,7 @@ class EditReviewFragment : Fragment() {
         addPhotosCard = root.findViewById(R.id.addPhotosCard)
         updateReviewButton = root.findViewById(R.id.updateReviewButton)
         deleteReviewButton = root.findViewById(R.id.deleteReviewButton)
+        loadingProgressBar = root.findViewById(R.id.loadingProgressBar)
     }
 
     private fun setupListeners() {
@@ -182,38 +209,46 @@ class EditReviewFragment : Fragment() {
 
         // Photo handling: tap card or preview to pick/change image
         val showPhotoOptions = {
-             // Build a simple options dialog (Replace / Remove / Cancel)
-             val hasCurrent = selectedImageBitmap != null || (currentReview?.imageUrl?.isNotBlank() == true)
-             val options = mutableListOf<String>()
-             options.add(getString(R.string.replace_photo))
-             if (hasCurrent) options.add(getString(R.string.remove_photo))
-             options.add(getString(R.string.cancel))
+            val hasCurrent = selectedImageBitmap != null || (currentReview?.imageUrl?.isNotBlank() == true)
+            val options = mutableListOf<String>()
+            options.add(getString(R.string.take_photo))
+            options.add(getString(R.string.choose_from_gallery))
+            if (hasCurrent) options.add(getString(R.string.remove_photo))
+            options.add(getString(R.string.cancel))
 
-             MaterialAlertDialogBuilder(requireContext())
-                 .setItems(options.toTypedArray()) { dialog, which ->
-                     val choice = options[which]
-                     when (choice) {
-                         getString(R.string.replace_photo) -> {
-                             pickImageLauncher.launch("image/*")
-                         }
-                         getString(R.string.remove_photo) -> {
-                             // Mark for removal and clear preview
-                             selectedImageBitmap = null
-                             removeImageFlag = true
-                             selectedPhotoImageView.setImageResource(R.drawable.image_placeholder)
-                             selectedPhotoImageView.visibility = View.GONE
-                         }
-                         else -> dialog.dismiss()
-                     }
-                 }
-                 .show()
-         }
+            MaterialAlertDialogBuilder(requireContext())
+                .setItems(options.toTypedArray()) { dialog, which ->
+                    val choice = options[which]
+                    when (choice) {
+                        getString(R.string.take_photo) -> {
+                            when {
+                                ContextCompat.checkSelfPermission(
+                                    requireContext(), Manifest.permission.CAMERA
+                                ) == PackageManager.PERMISSION_GRANTED -> takePictureLauncher.launch(null)
+                                else -> cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                            }
+                        }
+                        getString(R.string.choose_from_gallery) -> pickImageLauncher.launch("image/*")
+                        getString(R.string.remove_photo) -> {
+                            selectedImageBitmap = null
+                            removeImageFlag = true
+                            selectedPhotoImageView.setImageResource(R.drawable.image_placeholder)
+                            selectedPhotoImageView.visibility = View.GONE
+                        }
+                        else -> dialog.dismiss()
+                    }
+                }
+                .show()
+        }
 
         addPhotosCard.setOnClickListener { showPhotoOptions() }
         selectedPhotoImageView.setOnClickListener { showPhotoOptions() }
     }
 
     private fun loadReview(reviewId: String) {
+        loadingProgressBar.visibility = View.VISIBLE
+        updateReviewButton.isEnabled = false
+        deleteReviewButton.isEnabled = false
         lifecycleScope.launch {
             try {
                 val firestore = FirestoreSource()
@@ -250,10 +285,13 @@ class EditReviewFragment : Fragment() {
 
                 // Ensure validation state updates
                 updateReviewButton.isEnabled = ratingBar.rating >= 1f && !reviewEditText.text.isNullOrBlank()
+                deleteReviewButton.isEnabled = true
 
             } catch (e: Exception) {
                 Toast.makeText(requireContext(), "Failed to load review: ${e.message}", Toast.LENGTH_LONG).show()
                 findNavController().popBackStack()
+            } finally {
+                loadingProgressBar.visibility = View.GONE
             }
         }
     }
@@ -272,6 +310,7 @@ class EditReviewFragment : Fragment() {
         val origText = updateReviewButton.text
         updateReviewButton.isEnabled = false
         updateReviewButton.text = getString(R.string.updating)
+        loadingProgressBar.visibility = View.VISIBLE
         lifecycleScope.launch {
             try {
                 val saved = withContext(Dispatchers.IO) {
@@ -304,12 +343,15 @@ class EditReviewFragment : Fragment() {
                 Toast.makeText(requireContext(), "Failed to update review: ${e.message}", Toast.LENGTH_LONG).show()
                 updateReviewButton.isEnabled = true
                 updateReviewButton.text = origText
+            } finally {
+                loadingProgressBar.visibility = View.GONE
             }
         }
     }
 
     private fun performDelete(reviewId: String) {
         deleteReviewButton.isEnabled = false
+        loadingProgressBar.visibility = View.VISIBLE
         lifecycleScope.launch {
             try {
                 withContext(Dispatchers.IO) {
@@ -320,6 +362,8 @@ class EditReviewFragment : Fragment() {
             } catch (e: Exception) {
                 Toast.makeText(requireContext(), "Failed to delete review: ${e.message}", Toast.LENGTH_LONG).show()
                 deleteReviewButton.isEnabled = true
+            } finally {
+                loadingProgressBar.visibility = View.GONE
             }
         }
     }

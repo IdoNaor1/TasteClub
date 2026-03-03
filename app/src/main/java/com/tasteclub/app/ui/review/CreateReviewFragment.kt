@@ -22,7 +22,9 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken
 import com.google.android.libraries.places.widget.PlaceAutocompleteActivity
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.squareup.picasso.Picasso
+import com.tasteclub.app.R
 import com.tasteclub.app.data.remote.places.PlacesService
 import com.tasteclub.app.databinding.FragmentCreateReviewBinding
 import com.tasteclub.app.util.ServiceLocator
@@ -238,17 +240,22 @@ class CreateReviewFragment : Fragment() {
     }
 
     private fun showPhotoSourceOptions() {
-        // Simple dialog for camera/gallery choice
-        val options = arrayOf("Take photo", "Choose from gallery", "Remove photo")
-        androidx.appcompat.app.AlertDialog.Builder(requireContext())
-            .setTitle("Add photo")
-            .setItems(options) { dialog, which ->
-                when (which) {
-                    0 -> checkCameraPermissionAndLaunch()
-                    1 -> pickImageLauncher.launch("image/*")
-                    2 -> removeSelectedImage()
+        val hasPhoto = selectedImageBitmap != null
+        val options = mutableListOf<String>()
+        options.add(getString(R.string.take_photo))
+        options.add(getString(R.string.choose_from_gallery))
+        if (hasPhoto) options.add(getString(R.string.remove_photo))
+        options.add(getString(R.string.cancel))
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setItems(options.toTypedArray()) { dialog, which ->
+                val choice = options[which]
+                when (choice) {
+                    getString(R.string.take_photo) -> checkCameraPermissionAndLaunch()
+                    getString(R.string.choose_from_gallery) -> pickImageLauncher.launch("image/*")
+                    getString(R.string.remove_photo) -> removeSelectedImage()
+                    else -> dialog.dismiss()
                 }
-                dialog.dismiss()
             }
             .show()
     }

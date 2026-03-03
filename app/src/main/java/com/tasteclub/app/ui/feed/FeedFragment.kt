@@ -114,9 +114,9 @@ class FeedFragment : Fragment() {
      */
     private fun setupToolbar() {
 
-        // Create review FAB click -> Navigate to CreateReview
+        // Create review FAB click -> Navigate to CreateReview (with slide-up animation)
         binding.createReviewFab.setOnClickListener {
-            findNavController().navigate(R.id.createReviewFragment)
+            findNavController().navigate(R.id.action_feed_to_create_review)
         }
     }
 
@@ -209,7 +209,7 @@ class FeedFragment : Fragment() {
 
             // Setup action button
             emptyStateBinding.emptyStateActionButton.setOnClickListener {
-                findNavController().navigate(R.id.createReviewFragment)
+                findNavController().navigate(R.id.action_feed_to_create_review)
             }
         }
     }

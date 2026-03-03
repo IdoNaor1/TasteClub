@@ -11,39 +11,30 @@
         <item name="cornerRadius">18dp</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:textSize">16sp</item>
+        <item name="android:minHeight">48dp</item>
     </style>
 
     <!-- ========================= -->
-    <!-- Text Inputs (Material3) -->
+    <!-- Text Inputs (Material3)   -->
     <!-- ========================= -->
 
     <style name="Widget.TasteClub.TextInputLayout"
         parent="Widget.Material3.TextInputLayout.FilledBox">
-
-        <!-- Filled pill look -->
         <item name="boxBackgroundMode">filled</item>
         <item name="boxBackgroundColor">@color/surface_card</item>
-
-        <!-- No outline -->
         <item name="boxStrokeWidth">0dp</item>
         <item name="boxStrokeWidthFocused">0dp</item>
-
-        <!-- Rounded corners -->
         <item name="boxCornerRadiusTopStart">18dp</item>
         <item name="boxCornerRadiusTopEnd">18dp</item>
         <item name="boxCornerRadiusBottomStart">18dp</item>
         <item name="boxCornerRadiusBottomEnd">18dp</item>
-
         <item name="hintEnabled">true</item>
         <item name="hintTextColor">@color/text_secondary</item>
-
-        <!-- Padding -->
         <item name="android:paddingTop">8dp</item>
-
     </style>
 
     <!-- ========================= -->
-    <!-- Text Button -->
+    <!-- Text Button               -->
     <!-- ========================= -->
 
     <style name="Widget.TasteClub.TextButton" parent="Widget.Material3.Button.TextButton">
@@ -51,43 +42,65 @@
         <item name="android:textSize">14sp</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:fontFamily">sans-serif-medium</item>
-        <item name="android:padding">0dp</item> </style>
+        <item name="android:padding">0dp</item>
+    </style>
 
     <!-- ========================= -->
-    <!-- Material Card Views -->
+    <!-- Material Card Views       -->
     <!-- ========================= -->
 
+    <!-- Standard elevated card (used for review cards, restaurant card in forms) -->
     <style name="Widget.TasteClub.RestaurantCard" parent="Widget.Material3.CardView.Elevated">
         <item name="cardCornerRadius">16dp</item>
         <item name="cardBackgroundColor">@color/surface_card</item>
+        <item name="cardElevation">2dp</item>
+        <item name="cardMaxElevation">4dp</item>
     </style>
 
-    <style name="Widget.TasteClub.AddPhotosCard" parent="Widget.Material3.CardView.Outlined">
+    <!-- Outlined card (border, no elevation) -->
+    <style name="Widget.TasteClub.OutlinedCard" parent="Widget.Material3.CardView.Outlined">
         <item name="cardCornerRadius">16dp</item>
         <item name="cardBackgroundColor">@android:color/transparent</item>
         <item name="strokeColor">@color/text_secondary</item>
         <item name="strokeWidth">1dp</item>
+        <item name="cardElevation">0dp</item>
+    </style>
+
+    <!-- Flat card (no elevation, no border) -->
+    <style name="Widget.TasteClub.FlatCard" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardBackgroundColor">@color/surface_card</item>
+        <item name="cardElevation">0dp</item>
+    </style>
+
+    <!-- Add-photos dashed card (used in create/edit review) -->
+    <style name="Widget.TasteClub.AddPhotosCard" parent="Widget.Material3.CardView.Outlined">
+        <item name="cardCornerRadius">12dp</item>
+        <item name="cardBackgroundColor">@color/surface_card</item>
+        <item name="strokeColor">@color/text_secondary</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="cardElevation">0dp</item>
+    </style>
+
+    <!-- Dialog / bottom sheet surface - higher elevation -->
+    <style name="Widget.TasteClub.DialogCard" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardBackgroundColor">@color/surface_card</item>
+        <item name="cardElevation">8dp</item>
+        <item name="cardMaxElevation">12dp</item>
     </style>
 
     <!-- ========================= -->
-    <!-- Bottom Navigation -->
+    <!-- Bottom Navigation         -->
     <!-- ========================= -->
 
-    <style name="Widget.TasteClub.BottomNavigationView"
-        parent="Widget.Material3.BottomNavigationView">
-        <item name="materialThemeOverlay">
-            @style/ThemeOverlay.TasteClub.BottomNavigationView
-        </item>
-        <item name="itemRippleColor">@color/primary_brown</item>
-    </style>
-
-    <style name="ThemeOverlay.TasteClub.BottomNavigationView" parent="ThemeOverlay.Material3">
-        <item name="colorPrimary">@color/primary_brown</item>
-        <item name="colorOnSurface">@color/text_secondary</item>
+    <style name="Widget.TasteClub.BottomNavigationView" parent="Widget.Material3.BottomNavigationView">
+        <item name="itemIconTint">@color/bottom_nav_item_color</item>
+        <item name="itemTextColor">@color/bottom_nav_item_color</item>
     </style>
 
     <!-- ========================= -->
-    <!-- Typography -->
+    <!-- Typography                -->
     <!-- ========================= -->
 
     <style name="TextAppearance.TasteClub.Headline1"
@@ -103,7 +116,8 @@
 
     <style name="TextAppearance.TasteClub.Subtitle" parent="TextAppearance.Material3.BodyLarge">
         <item name="android:textColor">?attr/colorOnBackground</item>
-        <item name="android:alpha">0.7</item> </style>
+        <item name="android:alpha">0.7</item>
+    </style>
 
     <style name="TextAppearance.TasteClub.InputLabel" parent="TextAppearance.Material3.LabelLarge">
         <item name="android:textColor">?attr/colorOnBackground</item>
@@ -117,6 +131,23 @@
     <style name="TextAppearance.TasteClub.Create_review_label" parent="TextAppearance.Material3.LabelLarge">
         <item name="android:textSize">18sp</item>
         <item name="android:textColor">@color/text_primary</item>
+    </style>
+
+
+    <!-- Headline: Restaurant name on cards -->
+    <style name="TextStyle.Headline" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <!-- Body: Review text -->
+    <style name="TextStyle.Body" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textColor">@color/text_secondary</item>
+    </style>
+
+    <!-- Caption: Username, date -->
+    <style name="TextStyle.Caption" parent="TextAppearance.Material3.LabelSmall">
+        <item name="android:textColor">@color/text_secondary</item>
     </style>
 
 </resources>
