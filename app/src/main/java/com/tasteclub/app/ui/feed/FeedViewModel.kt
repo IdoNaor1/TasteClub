@@ -154,8 +154,7 @@ class FeedViewModel(
                 }
 
             } catch (e: Exception) {
-                // Don't change state on pagination error, just show toast
-                // The current list remains visible
+                _feedState.value = FeedState.Error(e.message ?: "Failed to load more reviews")
             } finally {
                 _isLoadingMore.value = false
             }
