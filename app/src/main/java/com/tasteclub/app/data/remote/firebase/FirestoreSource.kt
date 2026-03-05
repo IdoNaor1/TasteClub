@@ -1,6 +1,7 @@
 package com.tasteclub.app.data.remote.firebase
 
 import android.util.Log
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.tasteclub.app.data.model.Restaurant
@@ -129,6 +130,34 @@ class FirestoreSource(
         }
 
         return updated
+    }
+
+    /**
+     * Toggle like on a review. If the user already liked it, remove the like;
+     * otherwise add it. Uses atomic arrayUnion / arrayRemove operations.
+     * Returns the updated Review.
+     */
+    suspend fun toggleLike(reviewId: String, userId: String): Review {
+        require(reviewId.isNotBlank()) { "reviewId must not be blank" }
+        require(userId.isNotBlank()) { "userId must not be blank" }
+
+        val docRef = reviewsCol.document(reviewId)
+        val snap = docRef.get().await()
+        val review = snap.toObject(Review::class.java)
+            ?: throw IllegalStateException("Review $reviewId not found")
+
+        val alreadyLiked = review.likedBy.contains(userId)
+
+        if (alreadyLiked) {
+            docRef.update("likedBy", FieldValue.arrayRemove(userId)).await()
+        } else {
+            docRef.update("likedBy", FieldValue.arrayUnion(userId)).await()
+        }
+
+        // Re-read the updated document to return fresh data
+        val updatedSnap = docRef.get().await()
+        return updatedSnap.toObject(Review::class.java)
+            ?: throw IllegalStateException("Review $reviewId not found after update")
     }
 
     suspend fun deleteReview(reviewId: String) {

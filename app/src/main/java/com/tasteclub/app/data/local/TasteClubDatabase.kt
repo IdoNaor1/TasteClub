@@ -14,7 +14,7 @@ import com.tasteclub.app.data.local.entity.RestaurantEntity
 
 @Database(
     entities = [UserEntity::class, ReviewEntity::class, RestaurantEntity::class],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

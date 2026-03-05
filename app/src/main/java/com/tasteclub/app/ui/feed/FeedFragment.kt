@@ -51,7 +51,8 @@ class FeedFragment : Fragment() {
      */
     private fun setupViewModel() {
         val repository = ServiceLocator.provideReviewRepository(requireContext())
-        val factory = FeedViewModelFactory(repository)
+        val authRepository = ServiceLocator.provideAuthRepository(requireContext())
+        val factory = FeedViewModelFactory(repository, authRepository)
         viewModel = ViewModelProvider(this, factory)[FeedViewModel::class.java]
     }
 
@@ -59,13 +60,17 @@ class FeedFragment : Fragment() {
      * Setup RecyclerView with adapter and scroll listener for pagination
      */
     private fun setupRecyclerView() {
-        reviewAdapter = ReviewAdapter { restaurantId, restaurantName ->
-            val bundle = Bundle().apply {
-                putString("restaurantId", restaurantId)
-                putString("restaurantName", restaurantName)
+        reviewAdapter = ReviewAdapter(
+            currentUserId = viewModel.currentUserId,
+            onLikeClick = { review -> viewModel.toggleLike(review.id) },
+            onRestaurantClick = { restaurantId, restaurantName ->
+                val bundle = Bundle().apply {
+                    putString("restaurantId", restaurantId)
+                    putString("restaurantName", restaurantName)
+                }
+                findNavController().navigate(R.id.action_feed_to_restaurant_detail, bundle)
             }
-            findNavController().navigate(R.id.action_feed_to_restaurant_detail, bundle)
-        }
+        )
 
         binding.reviewsRecyclerView.apply {
             layoutManager = LinearLayoutManager(requireContext())

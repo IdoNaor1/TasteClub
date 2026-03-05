@@ -1,10 +1,12 @@
 package com.tasteclub.app.ui.feed
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tasteclub.app.data.model.Review
+import com.tasteclub.app.data.repository.AuthRepository
 import com.tasteclub.app.data.repository.ReviewRepository
 import kotlinx.coroutines.launch
 
@@ -19,12 +21,17 @@ import kotlinx.coroutines.launch
  * - Proper error handling
  */
 class FeedViewModel(
-    private val reviewRepository: ReviewRepository
+    private val reviewRepository: ReviewRepository,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     // --------------------
     // State Management
     // --------------------
+
+    // Current user ID for like state
+    val currentUserId: String
+        get() = authRepository.currentUserId() ?: ""
 
     /**
      * Sealed class representing all possible states of the feed
@@ -74,6 +81,22 @@ class FeedViewModel(
 
         _feedState.value = FeedState.Loading
         loadInitialReviews()
+    }
+
+    /**
+     * Toggle like on a review for the current user.
+     */
+    fun toggleLike(reviewId: String) {
+        val userId = currentUserId
+        if (userId.isBlank()) return
+
+        viewModelScope.launch {
+            try {
+                reviewRepository.toggleLike(reviewId, userId)
+            } catch (e: Exception) {
+                Log.e("FeedViewModel", "toggleLike failed for review=$reviewId user=$userId", e)
+            }
+        }
     }
 
     /**
