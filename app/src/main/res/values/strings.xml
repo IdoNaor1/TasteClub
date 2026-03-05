@@ -1,6 +1,7 @@
 <resources>
     <!-- App Name -->
     <string name="app_name">TasteClub</string>
+    <string name="back">Back</string>
 
     <!-- Navigation Labels -->
     <string name="login">Login</string>

@@ -14,6 +14,7 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.libraries.places.api.Places
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.squareup.picasso.Picasso
 import com.tasteclub.app.databinding.ActivityMainBinding
 import com.tasteclub.app.util.ServiceLocator
 import kotlinx.coroutines.launch
@@ -108,13 +109,44 @@ class MainActivity : AppCompatActivity() {
                 R.id.feedFragment,
                 R.id.myPostsFragment,
                 R.id.profileFragment,
-                // Add discoverFragment when implementing Phase 7
-                // R.id.discoverFragment
+                R.id.discoverFragment
             )
         )
 
         // Setup action bar with nav controller
         setupActionBarWithNavController(navController, appBarConfiguration)
+
+        // Profile image click -> navigate to profile tab
+        binding.toolbarProfileImage.setOnClickListener {
+            navController.navigate(R.id.profileFragment)
+        }
+
+        // Add review button click -> navigate to create review
+        binding.toolbarAddReview.setOnClickListener {
+            navController.navigate(R.id.action_global_create_review)
+        }
+
+        // Observe current user to load profile image into toolbar
+        val authRepo = ServiceLocator.provideAuthRepository(this)
+        val userId = authRepo.currentUserId()
+        if (userId != null) {
+            authRepo.observeUser(userId).observe(this) { user ->
+                if (user != null && user.profileImageUrl.isNotBlank()) {
+                    Picasso.get()
+                        .load(user.profileImageUrl)
+                        .placeholder(R.drawable.ic_profile)
+                        .error(R.drawable.ic_profile)
+                        .into(binding.toolbarProfileImage)
+                } else {
+                    binding.toolbarProfileImage.setImageResource(R.drawable.ic_profile)
+                }
+            }
+        }
+
+        // Detail toolbar: back button click -> navigate up
+        binding.toolbarBackButton.setOnClickListener {
+            navController.navigateUp()
+        }
     }
 
     /**
@@ -124,16 +156,20 @@ class MainActivity : AppCompatActivity() {
     private fun controlBottomNavVisibility() {
         navController.addOnDestinationChangedListener { _, destination, _ ->
             when (destination.id) {
-                // Show bottom nav on main destinations
+                // Main destinations: show main toolbar + bottom nav
                 R.id.feedFragment,
                 R.id.myPostsFragment,
                 R.id.profileFragment,
                 R.id.discoverFragment -> {
                     bottomNavigationView.visibility = View.VISIBLE
                     binding.toolbar.visibility = View.VISIBLE
+                    binding.toolbarMainContent.visibility = View.VISIBLE
+                    binding.toolbarDetailContent.visibility = View.GONE
+                    supportActionBar?.title = ""
+                    binding.toolbar.navigationIcon = null
                 }
 
-                // Hide bottom nav on auth screens
+                // Auth screens: hide everything
                 R.id.splashFragment,
                 R.id.loginFragment,
                 R.id.registerFragment,
@@ -142,19 +178,14 @@ class MainActivity : AppCompatActivity() {
                     binding.toolbar.visibility = View.GONE
                 }
 
-                // Hide bottom nav on detail/edit screens
-                R.id.createReviewFragment,
-                R.id.editReviewFragment,
-                R.id.otherUserProfileFragment,
-                R.id.restaurantDetailFragment -> {
-                    bottomNavigationView.visibility = View.GONE
-                    binding.toolbar.visibility = View.VISIBLE
-                }
-
-                // Default: hide bottom nav
+                // All other screens: show detail toolbar (back arrow + logo)
                 else -> {
                     bottomNavigationView.visibility = View.GONE
                     binding.toolbar.visibility = View.VISIBLE
+                    binding.toolbarMainContent.visibility = View.GONE
+                    binding.toolbarDetailContent.visibility = View.VISIBLE
+                    supportActionBar?.title = ""
+                    binding.toolbar.navigationIcon = null
                 }
             }
         }
