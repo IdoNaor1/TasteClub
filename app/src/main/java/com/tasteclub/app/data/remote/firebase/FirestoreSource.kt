@@ -4,6 +4,7 @@ import android.util.Log
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.tasteclub.app.data.model.Comment
 import com.tasteclub.app.data.model.Restaurant
 import com.tasteclub.app.data.model.Review
 import com.tasteclub.app.data.model.User
@@ -17,6 +18,7 @@ class FirestoreSource(
         private const val COL_USERS = "users"
         private const val COL_REVIEWS = "reviews"
         private const val COL_RESTAURANTS = "restaurants"
+        private const val COL_COMMENTS = "comments"
     }
 
     // Collections
@@ -324,4 +326,34 @@ class FirestoreSource(
     // ----------------------------
 
     private fun nowMillis(): Long = System.currentTimeMillis()
+
+    // ----------------------------
+    // Comments  (reviews/{reviewId}/comments/{commentId})
+    // ----------------------------
+
+    private fun commentsCol(reviewId: String) =
+        reviewsCol.document(reviewId).collection(COL_COMMENTS)
+
+    suspend fun getComments(reviewId: String): List<Comment> {
+        require(reviewId.isNotBlank()) { "reviewId must not be blank" }
+        val snap = commentsCol(reviewId)
+            .orderBy("createdAt", Query.Direction.ASCENDING)
+            .get().await()
+        return snap.toObjects(Comment::class.java)
+    }
+
+    suspend fun addComment(comment: Comment): Comment {
+        require(comment.reviewId.isNotBlank()) { "reviewId must not be blank" }
+        val col = commentsCol(comment.reviewId)
+        val docId = if (comment.id.isNotBlank()) comment.id else col.document().id
+        val toSave = comment.copy(id = docId, createdAt = nowMillis())
+        col.document(docId).set(toSave).await()
+        return toSave
+    }
+
+    suspend fun deleteComment(reviewId: String, commentId: String) {
+        require(reviewId.isNotBlank()) { "reviewId must not be blank" }
+        require(commentId.isNotBlank()) { "commentId must not be blank" }
+        commentsCol(reviewId).document(commentId).delete().await()
+    }
 }

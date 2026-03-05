@@ -23,6 +23,15 @@ class AuthRepository(
     fun isLoggedIn(): Boolean = authSource.isLoggedIn()
 
     /**
+     * One-shot suspend read of the current user from Room cache.
+     * Used when you need user data before building a ViewModel.
+     */
+    suspend fun getCurrentUserOnce(): User? {
+        val uid = currentUserId() ?: return null
+        return userDao.getByIdOnce(uid)?.toDomain()
+    }
+
+    /**
      * Observe user profile from local cache (Room).
      * UI should observe this.
      */

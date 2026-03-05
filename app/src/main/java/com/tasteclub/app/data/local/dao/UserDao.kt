@@ -15,6 +15,9 @@ interface UserDao {
     @Query("SELECT * FROM users WHERE uid = :uid LIMIT 1")
     fun getById(uid: String): LiveData<UserEntity?>
 
+    @Query("SELECT * FROM users WHERE uid = :uid LIMIT 1")
+    suspend fun getByIdOnce(uid: String): UserEntity?
+
     @Query("SELECT * FROM users")
     fun getAll(): LiveData<List<UserEntity>>
 

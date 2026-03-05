@@ -17,6 +17,9 @@ data class Review(
     // Likes
     val likedBy: List<String> = emptyList(),
 
+    // Comments (UI-only, not stored in Room/Firestore)
+    val commentCount: Int = 0,
+
     // Meta
     val createdAt: Long = 0L,
     val lastUpdated: Long = 0L
