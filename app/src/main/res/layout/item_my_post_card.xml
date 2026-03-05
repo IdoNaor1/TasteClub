@@ -189,6 +189,24 @@
                     android:textColor="@color/text_secondary"
                     android:textSize="14sp"
                     tools:text="12" />
+
+                <ImageView
+                    android:id="@+id/commentButton"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginStart="16dp"
+                    android:src="@drawable/ic_comment_outline"
+                    android:contentDescription="@string/send_comment"
+                    android:background="?attr/selectableItemBackgroundBorderless" />
+
+                <TextView
+                    android:id="@+id/tvCommentCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp"
+                    tools:text="0" />
             </LinearLayout>
 
             <!-- Delete Button -->
