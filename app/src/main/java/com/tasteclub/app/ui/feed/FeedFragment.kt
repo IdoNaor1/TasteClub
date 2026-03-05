@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.tasteclub.app.R
 import com.tasteclub.app.databinding.FragmentFeedBinding
 import com.tasteclub.app.databinding.LayoutEmptyStateBinding
+import com.tasteclub.app.ui.comment.CommentsBottomSheetFragment
 import com.tasteclub.app.util.ServiceLocator
 
 /**
@@ -51,7 +52,8 @@ class FeedFragment : Fragment() {
     private fun setupViewModel() {
         val repository = ServiceLocator.provideReviewRepository(requireContext())
         val authRepository = ServiceLocator.provideAuthRepository(requireContext())
-        val factory = FeedViewModelFactory(repository, authRepository)
+        val commentRepository = ServiceLocator.provideCommentRepository(requireContext())
+        val factory = FeedViewModelFactory(repository, authRepository, commentRepository)
         viewModel = ViewModelProvider(this, factory)[FeedViewModel::class.java]
     }
 
@@ -68,6 +70,13 @@ class FeedFragment : Fragment() {
                     putString("restaurantName", restaurantName)
                 }
                 findNavController().navigate(R.id.action_feed_to_restaurant_detail, bundle)
+            },
+            onCommentClick = { review ->
+                val sheet = CommentsBottomSheetFragment.newInstance(review.id)
+                sheet.onCommentCountChanged = { reviewId, newCount ->
+                    viewModel.updateCommentCount(reviewId, newCount)
+                }
+                sheet.show(childFragmentManager, "comments_${review.id}")
             }
         )
 
