@@ -16,11 +16,99 @@
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorSurface"
         android:elevation="0dp"
-        app:title="@string/app_name"
-        app:titleTextColor="?attr/colorOnSurface"
+        app:title=""
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Main toolbar content: profile image (left), logo (center), add review (right) -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/toolbar_main_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <!-- Profile image button (left) -->
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/toolbar_profile_image"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="8dp"
+                android:src="@drawable/ic_profile"
+                app:civ_border_width="1dp"
+                app:civ_border_color="@color/primary_brown"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:contentDescription="@string/profile" />
+
+            <!-- App name logo (center) -->
+            <ImageView
+                android:id="@+id/toolbar_logo"
+                android:layout_width="160dp"
+                android:layout_height="match_parent"
+                android:src="@drawable/tasteclub_name_logo"
+                android:scaleType="fitCenter"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:contentDescription="@string/app_name" />
+
+            <!-- Add review button (right) -->
+            <ImageButton
+                android:id="@+id/toolbar_add_review"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginEnd="8dp"
+                android:src="@drawable/ic_add"
+                android:scaleType="centerInside"
+                android:background="@drawable/bg_circle_brown"
+                android:contentDescription="@string/create_review"
+                app:tint="@android:color/white"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- Detail toolbar content: back arrow (left), name logo (right) -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/toolbar_detail_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone">
+
+            <!-- Back arrow (left) -->
+            <ImageButton
+                android:id="@+id/toolbar_back_button"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="4dp"
+                android:src="@drawable/ic_back_arrow"
+                android:scaleType="centerInside"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/back"
+                app:tint="@color/primary_brown"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
+
+            <!-- App name logo (right) -->
+            <ImageView
+                android:id="@+id/toolbar_detail_logo"
+                android:layout_width="120dp"
+                android:layout_height="match_parent"
+                android:layout_marginEnd="8dp"
+                android:src="@drawable/tasteclub_name_logo"
+                android:scaleType="fitCenter"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:contentDescription="@string/app_name" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </com.google.android.material.appbar.MaterialToolbar>
 
     <!-- Navigation Host Fragment -->
     <androidx.fragment.app.FragmentContainerView

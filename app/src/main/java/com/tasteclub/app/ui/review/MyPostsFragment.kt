@@ -12,7 +12,6 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.tasteclub.app.R
 import com.tasteclub.app.data.model.Review
 import com.tasteclub.app.databinding.LayoutEmptyStateBinding
@@ -44,7 +43,6 @@ class MyPostsFragment : Fragment() {
     private lateinit var myPostsRecyclerView: RecyclerView
     private lateinit var emptyStateContainer: ViewGroup
     private lateinit var loadingProgressBar: ProgressBar
-    private lateinit var fabCreateReview: FloatingActionButton
 
     // Adapter
     private lateinit var adapter: MyPostsAdapter
@@ -62,7 +60,6 @@ class MyPostsFragment : Fragment() {
 
         bindViews(view)
         setupRecyclerView()
-        setupFab()
         observeViewModel()
     }
 
@@ -73,7 +70,6 @@ class MyPostsFragment : Fragment() {
         myPostsRecyclerView = view.findViewById(R.id.myPostsRecyclerView)
         emptyStateContainer = view.findViewById(R.id.emptyStateContainer)
         loadingProgressBar = view.findViewById(R.id.loadingProgressBar)
-        fabCreateReview = view.findViewById(R.id.fabCreateReview)
     }
 
     /**
@@ -101,14 +97,6 @@ class MyPostsFragment : Fragment() {
         }
     }
 
-    /**
-     * Setup FAB click listener for creating new reviews
-     */
-    private fun setupFab() {
-        fabCreateReview.setOnClickListener {
-            navigateToCreateReview()
-        }
-    }
 
     /**
      * Observe ViewModel state changes
