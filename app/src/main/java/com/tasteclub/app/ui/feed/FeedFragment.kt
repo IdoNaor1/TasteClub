@@ -42,7 +42,6 @@ class FeedFragment : Fragment() {
         setupViewModel()
         setupRecyclerView()
         setupSwipeRefresh()
-        setupToolbar()
         observeViewModel()
     }
 
@@ -104,16 +103,6 @@ class FeedFragment : Fragment() {
         }
     }
 
-    /**
-     * Setup create review FAB
-     */
-    private fun setupToolbar() {
-
-        // Create review FAB click -> Navigate to CreateReview (with slide-up animation)
-        binding.createReviewFab.setOnClickListener {
-            findNavController().navigate(R.id.action_feed_to_create_review)
-        }
-    }
 
     /**
      * Observe ViewModel state changes and update UI accordingly

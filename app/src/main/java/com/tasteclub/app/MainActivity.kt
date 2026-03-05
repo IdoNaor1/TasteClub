@@ -159,12 +159,21 @@ class MainActivity : AppCompatActivity() {
                 // Main destinations: show main toolbar + bottom nav
                 R.id.feedFragment,
                 R.id.myPostsFragment,
-                R.id.profileFragment,
                 R.id.discoverFragment -> {
                     bottomNavigationView.visibility = View.VISIBLE
                     binding.toolbar.visibility = View.VISIBLE
                     binding.toolbarMainContent.visibility = View.VISIBLE
                     binding.toolbarDetailContent.visibility = View.GONE
+                    supportActionBar?.title = ""
+                    binding.toolbar.navigationIcon = null
+                }
+
+                // Profile: show detail toolbar (back arrow + logo) + bottom nav
+                R.id.profileFragment -> {
+                    bottomNavigationView.visibility = View.VISIBLE
+                    binding.toolbar.visibility = View.VISIBLE
+                    binding.toolbarMainContent.visibility = View.GONE
+                    binding.toolbarDetailContent.visibility = View.VISIBLE
                     supportActionBar?.title = ""
                     binding.toolbar.navigationIcon = null
                 }
