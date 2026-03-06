@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tasteclub.app.data.model.Review
 import com.tasteclub.app.data.repository.AuthRepository
+import com.tasteclub.app.data.repository.CommentRepository
 import com.tasteclub.app.data.repository.ReviewRepository
 import kotlinx.coroutines.launch
 
@@ -22,7 +23,8 @@ import kotlinx.coroutines.launch
  */
 class FeedViewModel(
     private val reviewRepository: ReviewRepository,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val commentRepository: CommentRepository
 ) : ViewModel() {
 
     // --------------------
@@ -100,6 +102,17 @@ class FeedViewModel(
     }
 
     /**
+     * Patch the comment count for a single review in the feed list.
+     * Called from FeedFragment when CommentsBottomSheet reports a count change.
+     */
+    fun updateCommentCount(reviewId: String, newCount: Int) {
+        val idx = allReviews.indexOfFirst { it.id == reviewId }
+        if (idx == -1) return
+        allReviews[idx] = allReviews[idx].copy(commentCount = newCount)
+        _feedState.value = FeedState.Success(allReviews.toList())
+    }
+
+    /**
      * Pull-to-refresh implementation
      * Clears local cache and fetches fresh data from Firestore
      */
@@ -131,6 +144,10 @@ class FeedViewModel(
                 _feedState.value = when {
                     reviews.isEmpty() -> FeedState.Empty
                     else -> FeedState.Success(reviews)
+                }
+
+                if (allReviews.isNotEmpty()) {
+                    fetchAndPatchCommentCounts(allReviews.map { it.id })
                 }
 
             } catch (e: Exception) {
@@ -172,6 +189,9 @@ class FeedViewModel(
 
                     // Update UI with combined list
                     _feedState.value = FeedState.Success(allReviews.toList())
+
+                    // Fetch counts for the newly loaded page
+                    fetchAndPatchCommentCounts(reviews.map { it.id })
                 } else {
                     hasMorePages = false
                 }
@@ -189,33 +209,40 @@ class FeedViewModel(
     // --------------------
 
     /**
-     * Observe local Room database for reactive updates
-     * This ensures UI updates automatically when data changes
+     * Observe local Room database for reactive updates.
+     * Preserves any in-memory commentCount values already patched into allReviews
+     * so a Room emission never resets counts back to 0.
      */
     private fun observeLocalFeed() {
         reviewRepository.observeFeed().observeForever { reviews ->
-            // Only update if we're not in loading state and have data
             if (_feedState.value !is FeedState.Loading && reviews.isNotEmpty()) {
-                _feedState.value = FeedState.Success(reviews)
+                // Build a lookup of counts we already know about
+                val knownCounts = allReviews.associate { it.id to it.commentCount }
+                val merged = reviews.map { review ->
+                    val known = knownCounts[review.id] ?: 0
+                    if (known > 0) review.copy(commentCount = known) else review
+                }
+                // Keep allReviews in sync
+                allReviews.clear()
+                allReviews.addAll(merged)
+                _feedState.value = FeedState.Success(merged)
             }
         }
     }
 
     /**
-     * Load initial reviews from Firestore
+     * Load initial reviews from Firestore, then fetch comment counts in the background.
      */
     private fun loadInitialReviews() {
         viewModelScope.launch {
             try {
                 _feedState.value = FeedState.Loading
 
-                // Fetch first page
                 val reviews = reviewRepository.refreshFeedPage(
                     limit = pageSize,
                     lastCreatedAt = null
                 )
 
-                // Initialize pagination tracking
                 if (reviews.isNotEmpty()) {
                     lastCreatedAt = reviews.last().createdAt
                     hasMorePages = reviews.size == pageSize
@@ -225,17 +252,41 @@ class FeedViewModel(
                     hasMorePages = false
                 }
 
-                // Update state
                 _feedState.value = when {
                     reviews.isEmpty() -> FeedState.Empty
-                    else -> FeedState.Success(reviews)
+                    else -> FeedState.Success(allReviews.toList())
+                }
+
+                // Fetch comment counts in the background and patch the list
+                if (allReviews.isNotEmpty()) {
+                    fetchAndPatchCommentCounts(allReviews.map { it.id })
                 }
 
             } catch (e: Exception) {
-                _feedState.value = FeedState.Error(
-                    e.message ?: "Failed to load reviews"
-                )
+                _feedState.value = FeedState.Error(e.message ?: "Failed to load reviews")
             }
+        }
+    }
+
+    /**
+     * Fetch comment counts for the given reviewIds and patch allReviews + state.
+     */
+    private suspend fun fetchAndPatchCommentCounts(reviewIds: List<String>) {
+        try {
+            val counts = commentRepository.getCommentCountsBatch(reviewIds)
+            var changed = false
+            counts.forEach { (reviewId, count) ->
+                val idx = allReviews.indexOfFirst { it.id == reviewId }
+                if (idx != -1 && allReviews[idx].commentCount != count) {
+                    allReviews[idx] = allReviews[idx].copy(commentCount = count)
+                    changed = true
+                }
+            }
+            if (changed) {
+                _feedState.value = FeedState.Success(allReviews.toList())
+            }
+        } catch (_: Exception) {
+            // Non-fatal — counts stay at 0, will be updated when user opens comments
         }
     }
 

@@ -8,13 +8,15 @@ import androidx.room.TypeConverters
 import com.tasteclub.app.data.local.dao.ReviewDao
 import com.tasteclub.app.data.local.dao.UserDao
 import com.tasteclub.app.data.local.dao.RestaurantDao
+import com.tasteclub.app.data.local.dao.CommentDao
 import com.tasteclub.app.data.local.entity.ReviewEntity
 import com.tasteclub.app.data.local.entity.UserEntity
 import com.tasteclub.app.data.local.entity.RestaurantEntity
+import com.tasteclub.app.data.local.entity.CommentEntity
 
 @Database(
-    entities = [UserEntity::class, ReviewEntity::class, RestaurantEntity::class],
-    version = 4,
+    entities = [UserEntity::class, ReviewEntity::class, RestaurantEntity::class, CommentEntity::class],
+    version = 5,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -23,6 +25,7 @@ abstract class TasteClubDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun reviewDao(): ReviewDao
     abstract fun restaurantDao(): RestaurantDao
+    abstract fun commentDao(): CommentDao
 
     companion object {
         @Volatile

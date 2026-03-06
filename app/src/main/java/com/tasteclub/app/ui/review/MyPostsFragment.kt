@@ -15,6 +15,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.tasteclub.app.R
 import com.tasteclub.app.data.model.Review
 import com.tasteclub.app.databinding.LayoutEmptyStateBinding
+import com.tasteclub.app.ui.comment.CommentsBottomSheetFragment
 import com.tasteclub.app.util.ServiceLocator
 
 /**
@@ -35,7 +36,8 @@ class MyPostsFragment : Fragment() {
     private val viewModel: MyPostsViewModel by viewModels {
         MyPostsViewModelFactory(
             reviewRepository = ServiceLocator.provideReviewRepository(requireContext()),
-            authRepository = ServiceLocator.provideAuthRepository(requireContext())
+            authRepository = ServiceLocator.provideAuthRepository(requireContext()),
+            commentRepository = ServiceLocator.provideCommentRepository(requireContext())
         )
     }
 
@@ -87,6 +89,13 @@ class MyPostsFragment : Fragment() {
                     putString("restaurantName", restaurantName)
                 }
                 findNavController().navigate(R.id.action_my_posts_to_restaurant_detail, bundle)
+            },
+            onCommentClick = { review ->
+                val sheet = CommentsBottomSheetFragment.newInstance(review.id)
+                sheet.onCommentCountChanged = { reviewId, newCount ->
+                    viewModel.updateCommentCount(reviewId, newCount)
+                }
+                sheet.show(childFragmentManager, "comments_${review.id}")
             }
         )
 

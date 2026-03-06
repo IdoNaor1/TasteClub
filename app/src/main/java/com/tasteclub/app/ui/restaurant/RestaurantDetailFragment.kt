@@ -18,6 +18,7 @@ import com.tasteclub.app.R
 import com.tasteclub.app.data.model.Restaurant
 import com.tasteclub.app.data.model.Review
 import com.tasteclub.app.ui.feed.ReviewAdapter
+import com.tasteclub.app.ui.comment.CommentsBottomSheetFragment
 import com.tasteclub.app.util.ServiceLocator
 import kotlinx.coroutines.launch
 
@@ -83,9 +84,14 @@ class RestaurantDetailFragment : Fragment() {
         val reviewsRecycler: RecyclerView = view.findViewById(R.id.reviews_recycler_view)
         val authRepository = ServiceLocator.provideAuthRepository(requireContext())
         val reviewRepo = ServiceLocator.provideReviewRepository(requireContext())
+        val commentRepo = ServiceLocator.provideCommentRepository(requireContext())
         val currentUserId = authRepository.currentUserId() ?: ""
 
-        val reviewAdapter = ReviewAdapter(
+        // Local patched list — holds commentCounts fetched from Firestore
+        val displayedReviews = mutableListOf<Review>()
+
+        lateinit var reviewAdapter: ReviewAdapter
+        reviewAdapter = ReviewAdapter(
             currentUserId = currentUserId,
             onLikeClick = { review ->
                 if (currentUserId.isNotBlank()) {
@@ -95,6 +101,17 @@ class RestaurantDetailFragment : Fragment() {
                         } catch (_: Exception) { }
                     }
                 }
+            },
+            onCommentClick = { review ->
+                val sheet = CommentsBottomSheetFragment.newInstance(review.id)
+                sheet.onCommentCountChanged = { reviewId, newCount ->
+                    val idx = displayedReviews.indexOfFirst { it.id == reviewId }
+                    if (idx != -1) {
+                        displayedReviews[idx] = displayedReviews[idx].copy(commentCount = newCount)
+                        reviewAdapter.submitList(displayedReviews.toList())
+                    }
+                }
+                sheet.show(childFragmentManager, "comments_${review.id}")
             }
         )
 
@@ -166,8 +183,35 @@ class RestaurantDetailFragment : Fragment() {
             } else {
                 reviews
             }
-            reviewAdapter.submitList(filtered)
+
+            // Preserve any commentCounts already patched in displayedReviews
+            val knownCounts = displayedReviews.associate { it.id to it.commentCount }
+            val merged = filtered.map { r ->
+                val known = knownCounts[r.id] ?: 0
+                if (known > 0) r.copy(commentCount = known) else r
+            }
+            displayedReviews.clear()
+            displayedReviews.addAll(merged)
+            reviewAdapter.submitList(displayedReviews.toList())
             updateRatingFromReviews(filtered)
+
+            // Fetch real comment counts in background
+            if (merged.isNotEmpty()) {
+                lifecycleScope.launch {
+                    try {
+                        val counts = commentRepo.getCommentCountsBatch(merged.map { it.id })
+                        var changed = false
+                        counts.forEach { (reviewId, count) ->
+                            val idx = displayedReviews.indexOfFirst { it.id == reviewId }
+                            if (idx != -1 && displayedReviews[idx].commentCount != count) {
+                                displayedReviews[idx] = displayedReviews[idx].copy(commentCount = count)
+                                changed = true
+                            }
+                        }
+                        if (changed) reviewAdapter.submitList(displayedReviews.toList())
+                    } catch (_: Exception) { }
+                }
+            }
         }
 
         // ViewModel for restaurant data

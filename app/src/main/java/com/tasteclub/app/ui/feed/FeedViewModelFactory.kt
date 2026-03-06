@@ -3,6 +3,7 @@ package com.tasteclub.app.ui.feed
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.tasteclub.app.data.repository.AuthRepository
+import com.tasteclub.app.data.repository.CommentRepository
 import com.tasteclub.app.data.repository.ReviewRepository
 
 /**
@@ -11,15 +12,15 @@ import com.tasteclub.app.data.repository.ReviewRepository
  */
 class FeedViewModelFactory(
     private val reviewRepository: ReviewRepository,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val commentRepository: CommentRepository
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(FeedViewModel::class.java)) {
-            return FeedViewModel(reviewRepository, authRepository) as T
+            return FeedViewModel(reviewRepository, authRepository, commentRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     }
 }
-

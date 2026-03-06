@@ -21,7 +21,8 @@ import java.util.Locale
 class ReviewAdapter(
     private val currentUserId: String,
     private val onLikeClick: (Review) -> Unit,
-    private val onRestaurantClick: ((restaurantId: String, restaurantName: String) -> Unit)? = null
+    private val onRestaurantClick: ((restaurantId: String, restaurantName: String) -> Unit)? = null,
+    private val onCommentClick: (Review) -> Unit = {}
 ) : ListAdapter<Review, ReviewAdapter.ReviewViewHolder>(ReviewDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ReviewViewHolder {
@@ -124,6 +125,15 @@ class ReviewAdapter(
                 )
                 likeCountTextView.text = review.likedBy.size.toString()
                 likeButton.setOnClickListener { onLikeClick(review) }
+
+                // Comment count — filled icon when there are comments, outline when zero
+                val hasComments = review.commentCount > 0
+                commentButton.setImageResource(
+                    if (hasComments) R.drawable.ic_comment else R.drawable.ic_comment_outline
+                )
+                tvCommentCount.text = review.commentCount.toString()
+                commentButton.setOnClickListener { onCommentClick(review) }
+                tvCommentCount.setOnClickListener { onCommentClick(review) }
             }
         }
 

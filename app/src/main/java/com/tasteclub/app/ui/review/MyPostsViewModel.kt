@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tasteclub.app.data.model.Review
 import com.tasteclub.app.data.repository.AuthRepository
+import com.tasteclub.app.data.repository.CommentRepository
 import com.tasteclub.app.data.repository.ReviewRepository
 import kotlinx.coroutines.launch
 
@@ -21,7 +22,8 @@ import kotlinx.coroutines.launch
  */
 class MyPostsViewModel(
     private val reviewRepository: ReviewRepository,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val commentRepository: CommentRepository
 ) : ViewModel() {
 
     // --------------------
@@ -47,6 +49,9 @@ class MyPostsViewModel(
 
     // Track currently deleting review
     private var deletingReviewId: String? = null
+
+    // In-memory cache with patched commentCounts
+    private val allReviews = mutableListOf<Review>()
 
     // Cache the current user ID
     val currentUserId: String
@@ -87,19 +92,28 @@ class MyPostsViewModel(
 
         viewModelScope.launch {
             try {
-                // First, refresh from Firestore to get latest data
-                reviewRepository.refreshUserReviewsPage(
-                    userId = userId,
-                    limit = 50 // Load all user's reviews
-                )
+                reviewRepository.refreshUserReviewsPage(userId = userId, limit = 50)
 
-                // Then observe from Room (cached data)
                 reviewRepository.observeReviewsByUser(userId).observeForever { reviews ->
                     if (reviews.isEmpty()) {
+                        allReviews.clear()
                         _myPostsState.value = MyPostsState.Empty
                     } else {
-                        _myPostsState.value = MyPostsState.Success(reviews)
+                        // Preserve any commentCounts already in cache
+                        val knownCounts = allReviews.associate { it.id to it.commentCount }
+                        val merged = reviews.map { r ->
+                            val known = knownCounts[r.id] ?: 0
+                            if (known > 0) r.copy(commentCount = known) else r
+                        }
+                        allReviews.clear()
+                        allReviews.addAll(merged)
+                        _myPostsState.value = MyPostsState.Success(merged)
                     }
+                }
+
+                // Fetch real counts in background after Room data is set
+                viewModelScope.launch {
+                    fetchAndPatchCommentCounts()
                 }
             } catch (e: Exception) {
                 _myPostsState.value = MyPostsState.Error(
@@ -107,6 +121,32 @@ class MyPostsViewModel(
                 )
             }
         }
+    }
+
+    private suspend fun fetchAndPatchCommentCounts() {
+        if (allReviews.isEmpty()) return
+        try {
+            val counts = commentRepository.getCommentCountsBatch(allReviews.map { it.id })
+            var changed = false
+            counts.forEach { (reviewId, count) ->
+                val idx = allReviews.indexOfFirst { it.id == reviewId }
+                if (idx != -1 && allReviews[idx].commentCount != count) {
+                    allReviews[idx] = allReviews[idx].copy(commentCount = count)
+                    changed = true
+                }
+            }
+            if (changed) {
+                _myPostsState.value = MyPostsState.Success(allReviews.toList())
+            }
+        } catch (_: Exception) { }
+    }
+
+    /** Called from the fragment when CommentsBottomSheet reports a count change. */
+    fun updateCommentCount(reviewId: String, newCount: Int) {
+        val idx = allReviews.indexOfFirst { it.id == reviewId }
+        if (idx == -1) return
+        allReviews[idx] = allReviews[idx].copy(commentCount = newCount)
+        _myPostsState.value = MyPostsState.Success(allReviews.toList())
     }
 
     /**
