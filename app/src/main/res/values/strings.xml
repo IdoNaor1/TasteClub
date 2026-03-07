@@ -198,5 +198,7 @@
     <string name="clear_search">Clear search</string>
     <string name="discover_prompt">Search for restaurants, users, or reviews</string>
     <string name="search_action">Search</string>
+    <string name="likes_label">Likes</string>
+    <string name="comments_label">Comments</string>
 
 </resources>

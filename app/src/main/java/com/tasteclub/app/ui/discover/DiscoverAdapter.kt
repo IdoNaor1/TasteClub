@@ -23,9 +23,11 @@ import java.util.Locale
  * Handles section headers, restaurant cards, user cards, and review cards.
  */
 class DiscoverAdapter(
+    private val currentUserId: String,
     private val onRestaurantClick: (restaurantId: String, restaurantName: String) -> Unit,
     private val onUserClick: (userId: String) -> Unit,
-    private val onReviewClick: (review: Review) -> Unit
+    private val onLikeClick: (review: Review) -> Unit,
+    private val onCommentClick: (review: Review) -> Unit
 ) : ListAdapter<DiscoverAdapter.DiscoverItem, RecyclerView.ViewHolder>(DiscoverDiffCallback()) {
 
     companion object {
@@ -179,9 +181,26 @@ class DiscoverAdapter(
             // User avatar
             loadImage(review.userProfileImageUrl, binding.reviewUserAvatar, R.drawable.ic_user_placeholder)
 
-            binding.root.setOnClickListener {
-                onReviewClick(review)
-            }
+            // Likes
+            val isLiked = review.likedBy.contains(currentUserId)
+            binding.likeCount.text = review.likedBy.size.toString()
+            binding.likeIcon.setImageResource(
+                if (isLiked) R.drawable.ic_heart_filled else R.drawable.ic_heart_outline
+            )
+            binding.likeIcon.setOnClickListener { onLikeClick(review) }
+
+            // Comments
+            val hasComments = review.commentCount > 0
+            binding.commentCount.text = review.commentCount.toString()
+            binding.commentIcon.setImageResource(
+                if (hasComments) R.drawable.ic_comment else R.drawable.ic_comment_outline
+            )
+            binding.commentIcon.setOnClickListener { onCommentClick(review) }
+            binding.commentCount.setOnClickListener { onCommentClick(review) }
+
+            // Review card itself is not clickable
+            binding.root.isClickable = false
+            binding.root.isFocusable = false
         }
     }
 

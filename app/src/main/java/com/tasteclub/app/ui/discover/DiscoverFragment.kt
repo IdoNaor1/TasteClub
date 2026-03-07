@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.tabs.TabLayout
 import com.tasteclub.app.R
 import com.tasteclub.app.databinding.FragmentDiscoverBinding
+import com.tasteclub.app.ui.comment.CommentsBottomSheetFragment
 import com.tasteclub.app.ui.discover.DiscoverAdapter.DiscoverItem
 import com.tasteclub.app.util.ServiceLocator
 
@@ -66,6 +67,7 @@ class DiscoverFragment : Fragment() {
 
     private fun setupRecyclerView() {
         discoverAdapter = DiscoverAdapter(
+            currentUserId = viewModel.currentUserId,
             onRestaurantClick = { restaurantId, restaurantName ->
                 val bundle = Bundle().apply {
                     putString("restaurantId", restaurantId)
@@ -79,15 +81,15 @@ class DiscoverFragment : Fragment() {
                 }
                 findNavController().navigate(R.id.action_discover_to_other_profile, bundle)
             },
-            onReviewClick = { review ->
-                // Navigate to restaurant detail for the review's restaurant
-                if (review.restaurantId.isNotBlank()) {
-                    val bundle = Bundle().apply {
-                        putString("restaurantId", review.restaurantId)
-                        putString("restaurantName", review.restaurantName)
-                    }
-                    findNavController().navigate(R.id.action_discover_to_restaurant_detail, bundle)
+            onLikeClick = { review ->
+                viewModel.toggleLike(review.id)
+            },
+            onCommentClick = { review ->
+                val sheet = CommentsBottomSheetFragment.newInstance(review.id)
+                sheet.onCommentCountChanged = { reviewId, newCount ->
+                    viewModel.updateCommentCount(reviewId, newCount)
                 }
+                sheet.show(childFragmentManager, "comments_${review.id}")
             }
         )
 

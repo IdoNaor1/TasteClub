@@ -30,6 +30,10 @@ class DiscoverViewModel(
         private const val TAG = "DiscoverViewModel"
     }
 
+    // ---- Current user ----
+    val currentUserId: String
+        get() = authRepository.currentUserId() ?: ""
+
     // ---- Tab enum ----
     enum class Tab { ALL, RESTAURANTS, USERS, REVIEWS }
 
@@ -91,6 +95,35 @@ class DiscoverViewModel(
 
     fun selectTab(tab: Tab) {
         _selectedTab.value = tab
+    }
+
+    /**
+     * Toggle like on a review for the current user.
+     */
+    fun toggleLike(reviewId: String) {
+        val userId = currentUserId
+        if (userId.isBlank()) return
+
+        viewModelScope.launch {
+            try {
+                val updated = reviewRepository.toggleLike(reviewId, userId)
+                // Update both the raw cache and re-filter
+                allReviews = allReviews.map { if (it.id == reviewId) updated else it }
+                applyFilter()
+            } catch (e: Exception) {
+                Log.e(TAG, "toggleLike failed for review=$reviewId", e)
+            }
+        }
+    }
+
+    /**
+     * Update the comment count for a review after the comments bottom sheet changes it.
+     */
+    fun updateCommentCount(reviewId: String, newCount: Int) {
+        allReviews = allReviews.map {
+            if (it.id == reviewId) it.copy(commentCount = newCount) else it
+        }
+        applyFilter()
     }
 
     fun refresh() {
