@@ -217,7 +217,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/delete"
                 android:textColor="#D32F2F"
-                app:icon="@drawable/ic_trash"
+                app:icon="@drawable/ic_delete"
                 app:iconTint="#D32F2F"
                 app:strokeColor="#D32F2F"
                 app:strokeWidth="1dp"
