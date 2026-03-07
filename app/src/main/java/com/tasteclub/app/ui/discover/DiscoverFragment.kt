@@ -6,15 +6,15 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
+import android.content.Context
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.tabs.TabLayout
 import com.tasteclub.app.R
-import com.tasteclub.app.data.model.Restaurant
-import com.tasteclub.app.data.model.Review
-import com.tasteclub.app.data.model.User
 import com.tasteclub.app.databinding.FragmentDiscoverBinding
 import com.tasteclub.app.ui.discover.DiscoverAdapter.DiscoverItem
 import com.tasteclub.app.util.ServiceLocator
@@ -113,6 +113,28 @@ class DiscoverFragment : Fragment() {
             viewModel.clearQuery()
             binding.clearButton.visibility = View.GONE
         }
+
+        // Search button: refresh data from Firestore + re-filter locally
+        binding.searchButton.setOnClickListener {
+            hideKeyboard()
+            viewModel.onSearchClick()
+        }
+
+        // Also trigger search on keyboard "Search" IME action
+        binding.searchEditText.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                hideKeyboard()
+                viewModel.onSearchClick()
+                true
+            } else {
+                false
+            }
+        }
+    }
+
+    private fun hideKeyboard() {
+        val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(binding.searchEditText.windowToken, 0)
     }
 
     private fun setupTabs() {
@@ -147,6 +169,8 @@ class DiscoverFragment : Fragment() {
             if (isLoading) {
                 binding.resultsRecyclerView.visibility = View.GONE
                 binding.emptyStateContainer.visibility = View.GONE
+            } else {
+                rebuildList()
             }
         }
 

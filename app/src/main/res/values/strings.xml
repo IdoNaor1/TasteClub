@@ -197,5 +197,6 @@
     <string name="no_results_found">No results found</string>
     <string name="clear_search">Clear search</string>
     <string name="discover_prompt">Search for restaurants, users, or reviews</string>
+    <string name="search_action">Search</string>
 
 </resources>

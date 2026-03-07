@@ -97,6 +97,32 @@ class DiscoverViewModel(
         loadAllData()
     }
 
+    /**
+     * Called when the search button is pressed.
+     * Re-fetches fresh data from Firestore, then re-runs the
+     * local filter with the current query.
+     */
+    fun onSearchClick() {
+        _isLoading.value = true
+        viewModelScope.launch {
+            try {
+                allRestaurants = restaurantRepository.refreshAllRestaurants()
+                allUsers = authRepository.refreshAllUsers()
+                allReviews = reviewRepository.refreshAllReviews()
+
+                _hasData.value = true
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to refresh data on search click", e)
+                _hasData.value = allRestaurants.isNotEmpty() ||
+                        allUsers.isNotEmpty() ||
+                        allReviews.isNotEmpty()
+            } finally {
+                _isLoading.value = false
+                applyFilter()
+            }
+        }
+    }
+
     // ---- Private ----
 
     private fun loadAllData() {
@@ -124,33 +150,34 @@ class DiscoverViewModel(
 
     private fun applyFilter() {
         val q = (_query.value ?: "").trim().lowercase()
+        val queryWords = q.split("\\s+".toRegex()).filter { it.isNotEmpty() }
 
-        val filteredR = if (q.isEmpty()) {
+        val filteredR = if (queryWords.isEmpty()) {
             allRestaurants
         } else {
             allRestaurants.filter { restaurant ->
-                restaurant.name.lowercase().contains(q) ||
-                        restaurant.address.lowercase().contains(q) ||
-                        restaurant.primaryType.lowercase().contains(q)
+                matchesQuery(restaurant.name, queryWords) ||
+                        matchesQuery(restaurant.address, queryWords) ||
+                        matchesQuery(restaurant.primaryType, queryWords)
             }
         }
 
-        val filteredU = if (q.isEmpty()) {
+        val filteredU = if (queryWords.isEmpty()) {
             allUsers
         } else {
             allUsers.filter { user ->
-                user.userName.lowercase().contains(q) ||
-                        user.email.lowercase().contains(q)
+                matchesQuery(user.userName, queryWords) ||
+                        matchesQuery(user.email, queryWords)
             }
         }
 
-        val filteredRev = if (q.isEmpty()) {
+        val filteredRev = if (queryWords.isEmpty()) {
             allReviews
         } else {
             allReviews.filter { review ->
-                review.text.lowercase().contains(q) ||
-                        review.restaurantName.lowercase().contains(q) ||
-                        review.userName.lowercase().contains(q)
+                matchesQuery(review.text, queryWords) ||
+                        matchesQuery(review.restaurantName, queryWords) ||
+                        matchesQuery(review.userName, queryWords)
             }
         }
 
@@ -161,6 +188,18 @@ class DiscoverViewModel(
         _restaurantCount.value = filteredR.size
         _userCount.value = filteredU.size
         _reviewCount.value = filteredRev.size
+    }
+
+    /**
+     * Checks if [text] matches the search [queryWords] using word-boundary matching.
+     * Each query word must match the start of at least one word in the text.
+     * For example, query "the" matches "The Diner" but NOT "three".
+     */
+    private fun matchesQuery(text: String, queryWords: List<String>): Boolean {
+        val textWords = text.lowercase().split("\\s+".toRegex())
+        return queryWords.all { qWord ->
+            textWords.any { tWord -> tWord.startsWith(qWord) }
+        }
     }
 }
 
