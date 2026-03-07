@@ -96,16 +96,22 @@
         </FrameLayout>
 
         <!-- Search (refresh + filter) button -->
-        <ImageButton
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/searchButton"
+            style="@style/Widget.Material3.Button.IconButton.Filled"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_marginStart="8dp"
-            android:src="@drawable/ic_search"
-            android:background="@drawable/bg_search_button"
-            android:contentDescription="@string/search_action"
-            android:elevation="2dp"
-            app:tint="@android:color/white" />
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            app:icon="@drawable/ic_search"
+            app:iconTint="@android:color/white"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:backgroundTint="@color/primary_brown"
+            app:cornerRadius="24dp"
+            app:rippleColor="#33FFFFFF"
+            android:contentDescription="@string/search_action" />
 
     </LinearLayout>
 
