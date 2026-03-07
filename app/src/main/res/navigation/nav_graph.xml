@@ -301,6 +301,15 @@
             app:popEnterAnim="@anim/slide_in_up"
             app:popExitAnim="@anim/slide_out_down" />
 
+        <!-- Navigate to other user profile -->
+        <action
+            android:id="@+id/action_restaurant_detail_to_other_profile"
+            app:destination="@id/otherUserProfileFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+
         <!-- Argument: restaurantId (required) -->
         <argument
             android:name="restaurantId"

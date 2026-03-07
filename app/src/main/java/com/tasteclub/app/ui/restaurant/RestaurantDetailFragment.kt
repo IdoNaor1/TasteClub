@@ -102,6 +102,12 @@ class RestaurantDetailFragment : Fragment() {
                     }
                 }
             },
+            onUserClick = { userId ->
+                val bundle = Bundle().apply {
+                    putString("userId", userId)
+                }
+                findNavController().navigate(R.id.action_restaurant_detail_to_other_profile, bundle)
+            },
             onCommentClick = { review ->
                 val sheet = CommentsBottomSheetFragment.newInstance(review.id)
                 sheet.onCommentCountChanged = { reviewId, newCount ->

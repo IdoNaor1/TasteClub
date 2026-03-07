@@ -178,8 +178,24 @@ class DiscoverAdapter(
             binding.reviewRestaurantName.text = review.restaurantName
             binding.reviewRating.text = review.rating.toString()
 
+            // Restaurant name click -> navigate to restaurant detail
+            binding.reviewRestaurantName.setOnClickListener {
+                if (review.restaurantId.isNotBlank()) {
+                    onRestaurantClick(review.restaurantId, review.restaurantName)
+                }
+            }
+
             // User avatar
             loadImage(review.userProfileImageUrl, binding.reviewUserAvatar, R.drawable.ic_user_placeholder)
+
+            // Username / avatar click -> navigate to user profile
+            val userClickListener = View.OnClickListener {
+                if (review.userId.isNotBlank()) {
+                    onUserClick(review.userId)
+                }
+            }
+            binding.reviewUserName.setOnClickListener(userClickListener)
+            binding.reviewUserAvatar.setOnClickListener(userClickListener)
 
             // Likes
             val isLiked = review.likedBy.contains(currentUserId)
