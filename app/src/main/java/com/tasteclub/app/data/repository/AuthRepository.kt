@@ -42,6 +42,26 @@ class AuthRepository(
     }
 
     /**
+     * Observe all users from local Room cache.
+     * Used by Discover screen.
+     */
+    fun observeAllUsers(): LiveData<List<User>> {
+        return userDao.getAll().map { list -> list.map { it.toDomain() } }
+    }
+
+    /**
+     * Fetch all users from Firestore and cache in Room.
+     * Used by Discover screen to populate search index.
+     */
+    suspend fun refreshAllUsers(): List<User> {
+        val users = firestoreSource.getAllUsers()
+        if (users.isNotEmpty()) {
+            userDao.upsertAll(users.map { it.toEntity() })
+        }
+        return users
+    }
+
+    /**
      * Register:
      * 1) Firebase Auth create user -> uid
      * 2) Create initial User profile

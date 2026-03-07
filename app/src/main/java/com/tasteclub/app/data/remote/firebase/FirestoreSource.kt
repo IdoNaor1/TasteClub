@@ -321,6 +321,39 @@ class FirestoreSource(
         restaurantsCol.document(id).delete().await()
     }
 
+    /**
+     * Fetch all restaurants from Firestore.
+     * Used by Discover screen to populate search index.
+     */
+    suspend fun getAllRestaurants(): List<Restaurant> {
+        val snap = restaurantsCol
+            .orderBy("lastUpdated", Query.Direction.DESCENDING)
+            .get().await()
+        return snap.toObjects(Restaurant::class.java)
+    }
+
+    /**
+     * Fetch all users from Firestore.
+     * Used by Discover screen to populate search index.
+     */
+    suspend fun getAllUsers(): List<User> {
+        val snap = usersCol
+            .orderBy("lastUpdated", Query.Direction.DESCENDING)
+            .get().await()
+        return snap.toObjects(User::class.java)
+    }
+
+    /**
+     * Fetch all reviews from Firestore (no pagination).
+     * Used by Discover screen to populate search index.
+     */
+    suspend fun getAllReviews(): List<Review> {
+        val snap = reviewsCol
+            .orderBy("createdAt", Query.Direction.DESCENDING)
+            .get().await()
+        return snap.toObjects(Review::class.java)
+    }
+
     // ----------------------------
     // Helpers
     // ----------------------------

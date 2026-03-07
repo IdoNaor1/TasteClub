@@ -185,4 +185,17 @@
         <item quantity="other">%1$d reviews</item>
     </plurals>
 
+    <!-- Discover Screen -->
+    <string name="search_hint">Search restaurants, users, and reviews</string>
+    <string name="tab_all">All</string>
+    <string name="tab_restaurants">Restaurants</string>
+    <string name="tab_users">Users</string>
+    <string name="tab_reviews">Reviews</string>
+    <string name="section_restaurants">Restaurants</string>
+    <string name="section_users">Users</string>
+    <string name="section_reviews">Reviews</string>
+    <string name="no_results_found">No results found</string>
+    <string name="clear_search">Clear search</string>
+    <string name="discover_prompt">Search for restaurants, users, or reviews</string>
+
 </resources>
