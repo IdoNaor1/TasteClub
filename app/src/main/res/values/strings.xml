@@ -201,4 +201,24 @@
     <string name="likes_label">Likes</string>
     <string name="comments_label">Comments</string>
 
+    <!-- Filter & Sort -->
+    <string name="filter_sort_title">Filter &amp; Sort</string>
+    <string name="filter_action">Filter and sort</string>
+    <string name="sort_by_label">Sort By</string>
+    <string name="sort_relevance">Relevance</string>
+    <string name="sort_best_rated">Best Rated</string>
+    <string name="sort_most_reviews">Most Reviews</string>
+    <string name="sort_newest">Newest</string>
+    <string name="min_rating_label">Minimum Rating</string>
+    <string name="rating_any">Any</string>
+    <string name="rating_2_plus">★ 2+</string>
+    <string name="rating_3_plus">★ 3+</string>
+    <string name="rating_4_plus">★ 4+</string>
+    <string name="min_reviews_label">Minimum Reviews (Restaurants)</string>
+    <string name="count_5_plus">5+</string>
+    <string name="count_10_plus">10+</string>
+    <string name="count_25_plus">25+</string>
+    <string name="clear_filters">Clear</string>
+    <string name="apply_filters">Apply</string>
+
 </resources>

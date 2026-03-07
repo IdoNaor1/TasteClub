@@ -37,6 +37,9 @@ class DiscoverViewModel(
     // ---- Tab enum ----
     enum class Tab { ALL, RESTAURANTS, USERS, REVIEWS }
 
+    // ---- Sort options ----
+    enum class SortOption { RELEVANCE, BEST_RATED, MOST_REVIEWS, NEWEST }
+
     // ---- Raw data caches ----
     private var allRestaurants: List<Restaurant> = emptyList()
     private var allUsers: List<User> = emptyList()
@@ -49,6 +52,20 @@ class DiscoverViewModel(
     // ---- Selected tab ----
     private val _selectedTab = MutableLiveData(Tab.ALL)
     val selectedTab: LiveData<Tab> = _selectedTab
+
+    // ---- Filter & Sort state ----
+    private val _minRating = MutableLiveData(0)
+    val minRating: LiveData<Int> = _minRating
+
+    private val _minReviewCount = MutableLiveData(0)
+    val minReviewCount: LiveData<Int> = _minReviewCount
+
+    private val _sortOption = MutableLiveData(SortOption.RELEVANCE)
+    val sortOption: LiveData<SortOption> = _sortOption
+
+    /** True when any filter/sort is active (used to show indicator on filter button) */
+    private val _isFilterActive = MutableLiveData(false)
+    val isFilterActive: LiveData<Boolean> = _isFilterActive
 
     // ---- Filtered results ----
     private val _filteredRestaurants = MutableLiveData<List<Restaurant>>(emptyList())
@@ -95,6 +112,38 @@ class DiscoverViewModel(
 
     fun selectTab(tab: Tab) {
         _selectedTab.value = tab
+    }
+
+    fun setMinRating(rating: Int) {
+        _minRating.value = rating
+        updateFilterActiveState()
+        applyFilter()
+    }
+
+    fun setMinReviewCount(count: Int) {
+        _minReviewCount.value = count
+        updateFilterActiveState()
+        applyFilter()
+    }
+
+    fun setSortOption(option: SortOption) {
+        _sortOption.value = option
+        updateFilterActiveState()
+        applyFilter()
+    }
+
+    fun clearFilters() {
+        _minRating.value = 0
+        _minReviewCount.value = 0
+        _sortOption.value = SortOption.RELEVANCE
+        updateFilterActiveState()
+        applyFilter()
+    }
+
+    private fun updateFilterActiveState() {
+        _isFilterActive.value = (_minRating.value ?: 0) > 0 ||
+                (_minReviewCount.value ?: 0) > 0 ||
+                (_sortOption.value ?: SortOption.RELEVANCE) != SortOption.RELEVANCE
     }
 
     /**
@@ -184,8 +233,12 @@ class DiscoverViewModel(
     private fun applyFilter() {
         val q = (_query.value ?: "").trim().lowercase()
         val queryWords = q.split("\\s+".toRegex()).filter { it.isNotEmpty() }
+        val minRat = _minRating.value ?: 0
+        val minRevCount = _minReviewCount.value ?: 0
+        val sort = _sortOption.value ?: SortOption.RELEVANCE
 
-        val filteredR = if (queryWords.isEmpty()) {
+        // --- Restaurants: text search + rating filter + review count filter ---
+        var filteredR = if (queryWords.isEmpty()) {
             allRestaurants
         } else {
             allRestaurants.filter { restaurant ->
@@ -194,7 +247,14 @@ class DiscoverViewModel(
                         matchesQuery(restaurant.primaryType, queryWords)
             }
         }
+        if (minRat > 0) {
+            filteredR = filteredR.filter { it.averageRating >= minRat }
+        }
+        if (minRevCount > 0) {
+            filteredR = filteredR.filter { it.numReviews >= minRevCount }
+        }
 
+        // --- Users: text search only (no rating/review filters apply) ---
         val filteredU = if (queryWords.isEmpty()) {
             allUsers
         } else {
@@ -204,7 +264,8 @@ class DiscoverViewModel(
             }
         }
 
-        val filteredRev = if (queryWords.isEmpty()) {
+        // --- Reviews: text search + rating filter ---
+        var filteredRev = if (queryWords.isEmpty()) {
             allReviews
         } else {
             allReviews.filter { review ->
@@ -212,6 +273,23 @@ class DiscoverViewModel(
                         matchesQuery(review.restaurantName, queryWords) ||
                         matchesQuery(review.userName, queryWords)
             }
+        }
+        if (minRat > 0) {
+            filteredRev = filteredRev.filter { it.rating >= minRat }
+        }
+
+        // --- Apply sorting ---
+        filteredR = when (sort) {
+            SortOption.BEST_RATED -> filteredR.sortedByDescending { it.averageRating }
+            SortOption.MOST_REVIEWS -> filteredR.sortedByDescending { it.numReviews }
+            SortOption.NEWEST -> filteredR.sortedByDescending { it.createdAt }
+            SortOption.RELEVANCE -> filteredR
+        }
+
+        filteredRev = when (sort) {
+            SortOption.BEST_RATED -> filteredRev.sortedByDescending { it.rating }
+            SortOption.NEWEST -> filteredRev.sortedByDescending { it.createdAt }
+            SortOption.MOST_REVIEWS, SortOption.RELEVANCE -> filteredRev
         }
 
         _filteredRestaurants.value = filteredR

@@ -51,6 +51,7 @@ class DiscoverFragment : Fragment() {
         setupViewModel()
         setupRecyclerView()
         setupSearchBar()
+        setupFilterButton()
         setupTabs()
         observeViewModel()
     }
@@ -139,6 +140,26 @@ class DiscoverFragment : Fragment() {
         imm.hideSoftInputFromWindow(binding.searchEditText.windowToken, 0)
     }
 
+    private fun setupFilterButton() {
+        binding.filterButton.setOnClickListener {
+            val sheet = FilterSortBottomSheet().apply {
+                initialMinRating = viewModel.minRating.value ?: 0
+                initialMinReviewCount = viewModel.minReviewCount.value ?: 0
+                initialSortOption = viewModel.sortOption.value ?: DiscoverViewModel.SortOption.RELEVANCE
+
+                onApply = { rating, reviewCount, sort ->
+                    viewModel.setMinRating(rating)
+                    viewModel.setMinReviewCount(reviewCount)
+                    viewModel.setSortOption(sort)
+                }
+                onClear = {
+                    viewModel.clearFilters()
+                }
+            }
+            sheet.show(childFragmentManager, "filter_sort")
+        }
+    }
+
     private fun setupTabs() {
         val tabs = binding.categoryTabs
         tabs.addTab(tabs.newTab().setText(getString(R.string.tab_all)))
@@ -190,6 +211,11 @@ class DiscoverFragment : Fragment() {
         }
         viewModel.reviewCount.observe(viewLifecycleOwner) { count ->
             updateTabText(3, getString(R.string.tab_reviews), count)
+        }
+
+        // Show/hide filter active indicator dot
+        viewModel.isFilterActive.observe(viewLifecycleOwner) { active ->
+            binding.filterActiveDot.visibility = if (active) View.VISIBLE else View.GONE
         }
     }
 
