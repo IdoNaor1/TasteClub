@@ -5,8 +5,11 @@ import androidx.lifecycle.map
 import com.tasteclub.app.data.local.dao.RestaurantDao
 import com.tasteclub.app.data.local.entity.RestaurantEntity
 import com.tasteclub.app.data.local.entity.toDomain
+import com.tasteclub.app.data.local.entity.toEntity
 import com.tasteclub.app.data.model.Restaurant
 import com.tasteclub.app.data.remote.firebase.FirestoreSource
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 class RestaurantRepository(
     private val firestoreSource: FirestoreSource,
@@ -97,6 +100,25 @@ class RestaurantRepository(
     }
 
 
+
+    /**
+     * Observe all restaurants from Room cache as a Flow.
+     */
+    fun observeAllRestaurants(): Flow<List<Restaurant>> {
+        return restaurantDao.getAll().map { list -> list.map { it.toDomain() } }
+    }
+
+    /**
+     * Fetch all restaurants from Firestore and cache in Room.
+     * Used by Discover screen to populate search index.
+     */
+    suspend fun refreshAllRestaurants(): List<Restaurant> {
+        val restaurants = firestoreSource.getAllRestaurants()
+        if (restaurants.isNotEmpty()) {
+            restaurantDao.upsertAll(restaurants.map { it.toEntity() })
+        }
+        return restaurants
+    }
 
     /**
      * Delete a restaurant from both Firestore and Room.

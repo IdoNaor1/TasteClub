@@ -8,16 +8,188 @@
     android:background="@color/background_beige"
     tools:context=".ui.discover.DiscoverFragment">
 
-    <TextView
+    <!-- Search bar row: search input + search button -->
+    <LinearLayout
+        android:id="@+id/searchBarRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="12dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Search bar container -->
+        <LinearLayout
+            android:id="@+id/searchBarContainer"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_search_bar"
+            android:elevation="2dp">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_search"
+                app:tint="@color/text_secondary"
+                android:contentDescription="@string/search_hint" />
+
+            <EditText
+                android:id="@+id/searchEditText"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="4dp"
+                android:background="@android:color/transparent"
+                android:hint="@string/search_hint"
+                android:textColorHint="@color/text_secondary"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:inputType="text"
+                android:imeOptions="actionSearch"
+                android:maxLines="1"
+                android:singleLine="true" />
+
+            <ImageButton
+                android:id="@+id/clearButton"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_clear"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/clear_search"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+        </LinearLayout>
+
+        <!-- Filter / Sort button -->
+        <FrameLayout
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="6dp">
+
+            <ImageButton
+                android:id="@+id/filterButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_filter"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/filter_action"
+                app:tint="@color/text_secondary" />
+
+            <!-- Active filter indicator dot -->
+            <View
+                android:id="@+id/filterActiveDot"
+                android:layout_width="8dp"
+                android:layout_height="8dp"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="6dp"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/bg_circle_brown"
+                android:visibility="gone" />
+
+        </FrameLayout>
+
+        <!-- Search (refresh + filter) button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/searchButton"
+            style="@style/Widget.Material3.Button.IconButton.Filled"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            app:icon="@drawable/ic_search"
+            app:iconTint="@android:color/white"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:backgroundTint="@color/primary_brown"
+            app:cornerRadius="24dp"
+            app:rippleColor="#33FFFFFF"
+            android:contentDescription="@string/search_action" />
+
+    </LinearLayout>
+
+    <!-- Category tabs -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/categoryTabs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:background="@android:color/transparent"
+        app:tabMode="fixed"
+        app:tabGravity="fill"
+        app:tabIndicatorColor="@color/primary_brown"
+        app:tabSelectedTextColor="@color/primary_brown"
+        app:tabTextColor="@color/text_secondary"
+        app:tabIndicatorHeight="3dp"
+        app:tabRippleColor="@color/surface_card"
+        app:layout_constraintTop_toBottomOf="@id/searchBarRow"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Loading indicator -->
+    <ProgressBar
+        android:id="@+id/progressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/discover"
-        android:textSize="24sp"
-        android:textColor="@color/text_primary"
+        android:indeterminateTint="@color/primary_brown"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/categoryTabs"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Results RecyclerView -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/resultsRecyclerView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="4dp"
+        android:clipToPadding="false"
+        android:paddingBottom="16dp"
+        android:overScrollMode="never"
+        app:layout_constraintTop_toBottomOf="@id/categoryTabs"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Empty state -->
+    <LinearLayout
+        android:id="@+id/emptyStateContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/categoryTabs"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageView
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:src="@drawable/ic_search"
+            app:tint="@color/text_secondary"
+            android:alpha="0.4"
+            android:contentDescription="@string/no_results_found" />
+
+        <TextView
+            android:id="@+id/emptyStateText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/discover_prompt"
+            android:textColor="@color/text_secondary"
+            android:textSize="16sp" />
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-

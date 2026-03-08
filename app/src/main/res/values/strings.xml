@@ -185,4 +185,40 @@
         <item quantity="other">%1$d reviews</item>
     </plurals>
 
+    <!-- Discover Screen -->
+    <string name="search_hint">Search restaurants, users, and reviews</string>
+    <string name="tab_all">All</string>
+    <string name="tab_restaurants">Restaurants</string>
+    <string name="tab_users">Users</string>
+    <string name="tab_reviews">Reviews</string>
+    <string name="section_restaurants">Restaurants</string>
+    <string name="section_users">Users</string>
+    <string name="section_reviews">Reviews</string>
+    <string name="no_results_found">No results found</string>
+    <string name="clear_search">Clear search</string>
+    <string name="discover_prompt">Search for restaurants, users, or reviews</string>
+    <string name="search_action">Search</string>
+    <string name="likes_label">Likes</string>
+    <string name="comments_label">Comments</string>
+
+    <!-- Filter & Sort -->
+    <string name="filter_sort_title">Filter &amp; Sort</string>
+    <string name="filter_action">Filter and sort</string>
+    <string name="sort_by_label">Sort By</string>
+    <string name="sort_relevance">Relevance</string>
+    <string name="sort_best_rated">Best Rated</string>
+    <string name="sort_most_reviews">Most Reviews</string>
+    <string name="sort_newest">Newest</string>
+    <string name="min_rating_label">Minimum Rating</string>
+    <string name="rating_any">Any</string>
+    <string name="rating_2_plus">★ 2+</string>
+    <string name="rating_3_plus">★ 3+</string>
+    <string name="rating_4_plus">★ 4+</string>
+    <string name="min_reviews_label">Minimum Reviews (Restaurants)</string>
+    <string name="count_5_plus">5+</string>
+    <string name="count_10_plus">10+</string>
+    <string name="count_25_plus">25+</string>
+    <string name="clear_filters">Clear</string>
+    <string name="apply_filters">Apply</string>
+
 </resources>

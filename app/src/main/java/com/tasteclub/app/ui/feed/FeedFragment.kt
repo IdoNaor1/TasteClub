@@ -71,6 +71,12 @@ class FeedFragment : Fragment() {
                 }
                 findNavController().navigate(R.id.action_feed_to_restaurant_detail, bundle)
             },
+            onUserClick = { userId ->
+                val bundle = Bundle().apply {
+                    putString("userId", userId)
+                }
+                findNavController().navigate(R.id.action_feed_to_other_profile, bundle)
+            },
             onCommentClick = { review ->
                 val sheet = CommentsBottomSheetFragment.newInstance(review.id)
                 sheet.onCommentCountChanged = { reviewId, newCount ->

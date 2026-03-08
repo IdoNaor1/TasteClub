@@ -22,6 +22,7 @@ class ReviewAdapter(
     private val currentUserId: String,
     private val onLikeClick: (Review) -> Unit,
     private val onRestaurantClick: ((restaurantId: String, restaurantName: String) -> Unit)? = null,
+    private val onUserClick: ((userId: String) -> Unit)? = null,
     private val onCommentClick: (Review) -> Unit = {}
 ) : ListAdapter<Review, ReviewAdapter.ReviewViewHolder>(ReviewDiffCallback()) {
 
@@ -91,6 +92,15 @@ class ReviewAdapter(
                         onRestaurantClick?.invoke(review.restaurantId, review.restaurantName)
                     }
                 }
+
+                // Username / avatar click -> navigate to user profile
+                val userClickListener = View.OnClickListener {
+                    if (review.userId.isNotBlank()) {
+                        onUserClick?.invoke(review.userId)
+                    }
+                }
+                userNameTextView.setOnClickListener(userClickListener)
+                userAvatarImageView.setOnClickListener(userClickListener)
 
                 // Load restaurant image with Picasso
                 if (!review.imageUrl.isNullOrBlank()) {

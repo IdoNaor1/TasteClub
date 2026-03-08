@@ -28,6 +28,18 @@ class ReviewRepository(
     fun observeReviewsByUser(userId: String): LiveData<List<Review>> =
         reviewDao.observeByUser(userId).map { list -> list.map { it.toDomain() } }
 
+    /**
+     * Fetch all reviews from Firestore (no pagination) and cache in Room.
+     * Used by Discover screen to populate search index.
+     */
+    suspend fun refreshAllReviews(): List<Review> {
+        val reviews = firestoreSource.getAllReviews()
+        if (reviews.isNotEmpty()) {
+            reviewDao.upsertAll(reviews.map { it.toEntity() })
+        }
+        return reviews
+    }
+
     // --------------------
     // Sync from Firestore -> Room
     // --------------------

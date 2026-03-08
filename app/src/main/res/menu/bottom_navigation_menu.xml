@@ -18,7 +18,7 @@
     <!-- Discover Tab -->
     <item
         android:id="@id/discoverFragment"
-        android:icon="@drawable/ic_discover"
+        android:icon="@drawable/ic_search"
         android:title="@string/nav_discover"
         android:enabled="true" />
 
