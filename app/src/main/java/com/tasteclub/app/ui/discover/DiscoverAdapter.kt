@@ -179,7 +179,20 @@ class DiscoverAdapter(
 
             // Restaurant info
             binding.reviewRestaurantName.text = review.restaurantName
-            binding.reviewRating.text = review.rating.toString()
+
+            // 5-star rating
+            val starViews = listOf(
+                binding.star1ImageView,
+                binding.star2ImageView,
+                binding.star3ImageView,
+                binding.star4ImageView,
+                binding.star5ImageView
+            )
+            starViews.forEachIndexed { index, star ->
+                star.setImageResource(
+                    if (index < review.rating) R.drawable.ic_star_filled else R.drawable.ic_star_outline
+                )
+            }
 
             // Restaurant name click -> navigate to restaurant detail
             binding.reviewRestaurantName.setOnClickListener {
@@ -265,4 +278,3 @@ class DiscoverAdapter(
         }
     }
 }
-

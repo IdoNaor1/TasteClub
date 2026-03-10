@@ -4,187 +4,229 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="16dp"
-    app:cardBackgroundColor="@color/surface_card"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginBottom="10dp"
     app:cardCornerRadius="16dp"
-    app:cardElevation="2dp">
-    <LinearLayout
+    app:cardElevation="2dp"
+    app:cardBackgroundColor="@android:color/white"
+    app:strokeWidth="0dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="@dimen/spacing_md">
-        <LinearLayout
-            android:layout_width="match_parent"
+        android:padding="12dp">
+
+        <!-- User profile picture -->
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/userAvatarImageView"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_user_placeholder"
+            android:contentDescription="@string/user_avatar"
+            app:civ_border_width="1dp"
+            app:civ_border_color="@color/surface_card"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Username -->
+        <TextView
+            android:id="@+id/userNameTextView"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="@dimen/spacing_sm">
-            <de.hdodenhof.circleimageview.CircleImageView
-                android:id="@+id/userAvatarImageView"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@drawable/ic_user_placeholder"
-                android:contentDescription="@string/user_avatar"
-                app:civ_border_width="1dp"
-                app:civ_border_color="@color/text_secondary" />
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:layout_marginStart="@dimen/spacing_sm">
-                <TextView
-                    android:id="@+id/userNameTextView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="?attr/selectableItemBackground"
-                    android:textColor="@color/text_primary"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    tools:text="John Doe" />
-                <TextView
-                    android:id="@+id/dateTextView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="12sp"
-                    android:layout_marginTop="2dp"
-                    tools:text="2 hours ago" />
-            </LinearLayout>
-        </LinearLayout>
-        <ImageView
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="8dp"
+            android:background="?attr/selectableItemBackground"
+            android:textColor="@color/text_primary"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="end"
+            tools:text="johndoe"
+            app:layout_constraintStart_toEndOf="@id/userAvatarImageView"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/userAvatarImageView" />
+
+        <!-- Review date -->
+        <TextView
+            android:id="@+id/dateTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginTop="1dp"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp"
+            tools:text="Feb 28, 2026"
+            app:layout_constraintStart_toEndOf="@id/userAvatarImageView"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/userNameTextView" />
+
+        <!-- Food / dish image -->
+        <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/restaurantImageView"
             android:layout_width="match_parent"
-            android:layout_height="192dp"
+            android:layout_height="160dp"
+            android:layout_marginTop="10dp"
             android:scaleType="centerCrop"
-            android:background="@color/surface_card"
-            android:src="@drawable/image_placeholder"
+            android:visibility="gone"
             android:contentDescription="@string/restaurant_image"
-            android:layout_marginBottom="@dimen/spacing_sm" />
-        <com.google.android.material.button.MaterialButton
+            android:src="@drawable/image_placeholder"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Medium"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/userAvatarImageView"
+            tools:visibility="visible" />
+
+        <!-- Restaurant name (tappable) -->
+        <TextView
             android:id="@+id/restaurantNameTextView"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:textColor="@color/primary_brown"
-            android:textSize="18sp"
+            android:layout_marginTop="10dp"
+            android:background="?attr/selectableItemBackground"
+            android:textColor="@color/accent_caramel"
+            android:textSize="14sp"
             android:textStyle="bold"
-            android:textAllCaps="false"
-            android:minHeight="0dp"
-            android:minWidth="0dp"
-            android:paddingStart="0dp"
-            android:paddingEnd="8dp"
-            android:paddingTop="0dp"
-            android:paddingBottom="0dp"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:layout_marginBottom="4dp"
-            tools:text="The Golden Spoon" />
+            android:maxLines="1"
+            android:ellipsize="end"
+            tools:text="Joe's Diner"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/restaurantImageView" />
+
+        <!-- Restaurant address (secondary line) -->
         <TextView
             android:id="@+id/restaurantAddressTextView"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
             android:textColor="@color/text_secondary"
-            android:textSize="14sp"
-            android:layout_marginBottom="@dimen/spacing_sm"
-            tools:text="123 Main St, New York, NY" />
+            android:textSize="12sp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            tools:text="123 Main St, New York, NY"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/restaurantNameTextView" />
+
+        <!-- 5-star rating row -->
         <LinearLayout
             android:id="@+id/starRatingLayout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="@dimen/spacing_sm">
+            android:layout_marginTop="6dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/restaurantAddressTextView">
+
             <ImageView
                 android:id="@+id/star1ImageView"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
                 android:src="@drawable/ic_star_filled"
-                app:tint="@color/star_amber"
                 android:contentDescription="@string/rating_star"
-                android:layout_marginEnd="4dp" />
+                android:layout_marginEnd="3dp"
+                app:tint="@color/star_amber" />
+
             <ImageView
                 android:id="@+id/star2ImageView"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
                 android:src="@drawable/ic_star_filled"
-                app:tint="@color/star_amber"
                 android:contentDescription="@string/rating_star"
-                android:layout_marginEnd="4dp" />
+                android:layout_marginEnd="3dp"
+                app:tint="@color/star_amber" />
+
             <ImageView
                 android:id="@+id/star3ImageView"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
                 android:src="@drawable/ic_star_filled"
-                app:tint="@color/star_amber"
                 android:contentDescription="@string/rating_star"
-                android:layout_marginEnd="4dp" />
+                android:layout_marginEnd="3dp"
+                app:tint="@color/star_amber" />
+
             <ImageView
                 android:id="@+id/star4ImageView"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
                 android:src="@drawable/ic_star_filled"
-                app:tint="@color/star_amber"
                 android:contentDescription="@string/rating_star"
-                android:layout_marginEnd="4dp" />
+                android:layout_marginEnd="3dp"
+                app:tint="@color/star_amber" />
+
             <ImageView
                 android:id="@+id/star5ImageView"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
                 android:src="@drawable/ic_star_filled"
-                app:tint="@color/star_amber"
-                android:contentDescription="@string/rating_star" />
+                android:contentDescription="@string/rating_star"
+                app:tint="@color/star_amber" />
+
         </LinearLayout>
+
+        <!-- Review text (below location + stars) -->
         <TextView
             android:id="@+id/reviewTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:textColor="@color/text_primary"
             android:textSize="14sp"
             android:lineSpacingMultiplier="1.2"
-            tools:text="This is an amazing restaurant with fantastic food and great service. Highly recommended for anyone looking for a memorable dining experience!" />
+            tools:text="Amazing food and great service! The pasta was cooked to perfection."
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/starRatingLayout" />
 
-        <!-- Like Button Row -->
+        <!-- Likes and comments row -->
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:id="@+id/likesCommentsRow"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginTop="8dp">
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/reviewTextView">
 
             <ImageView
                 android:id="@+id/likeButton"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
                 android:src="@drawable/ic_heart_outline"
-                android:contentDescription="Like"
-                android:background="?attr/selectableItemBackgroundBorderless" />
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/likes_label" />
 
             <TextView
                 android:id="@+id/likeCountTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
+                android:layout_marginStart="4dp"
                 android:textColor="@color/text_secondary"
-                android:textSize="14sp"
+                android:textSize="13sp"
                 tools:text="12" />
 
             <ImageView
                 android:id="@+id/commentButton"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
                 android:layout_marginStart="16dp"
                 android:src="@drawable/ic_comment_outline"
-                android:contentDescription="@string/send_comment"
-                android:background="?attr/selectableItemBackgroundBorderless" />
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/comments_label" />
 
             <TextView
                 android:id="@+id/tvCommentCount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
+                android:layout_marginStart="4dp"
                 android:textColor="@color/text_secondary"
-                android:textSize="14sp"
-                tools:text="0" />
+                android:textSize="13sp"
+                tools:text="3" />
+
         </LinearLayout>
-    </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
 </com.google.android.material.card.MaterialCardView>
