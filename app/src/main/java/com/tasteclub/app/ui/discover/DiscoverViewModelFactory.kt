@@ -3,6 +3,7 @@ package com.tasteclub.app.ui.discover
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.tasteclub.app.data.repository.AuthRepository
+import com.tasteclub.app.data.repository.CommentRepository
 import com.tasteclub.app.data.repository.RestaurantRepository
 import com.tasteclub.app.data.repository.ReviewRepository
 
@@ -13,13 +14,14 @@ import com.tasteclub.app.data.repository.ReviewRepository
 class DiscoverViewModelFactory(
     private val reviewRepository: ReviewRepository,
     private val restaurantRepository: RestaurantRepository,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val commentRepository: CommentRepository
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(DiscoverViewModel::class.java)) {
-            return DiscoverViewModel(reviewRepository, restaurantRepository, authRepository) as T
+            return DiscoverViewModel(reviewRepository, restaurantRepository, authRepository, commentRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     }
