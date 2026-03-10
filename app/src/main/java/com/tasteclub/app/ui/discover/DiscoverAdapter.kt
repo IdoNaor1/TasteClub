@@ -134,9 +134,12 @@ class DiscoverAdapter(
         fun bind(user: User) {
             binding.userName.text = user.userName
 
-            binding.userBio.text = if (user.bio.isNotBlank()) user.bio else user.email
-            binding.userBio.visibility = if (user.bio.isNotBlank() || user.email.isNotBlank())
-                View.VISIBLE else View.GONE
+            if (user.bio.isNotBlank()) {
+                binding.userBio.text = user.bio
+                binding.userBio.visibility = View.VISIBLE
+            } else {
+                binding.userBio.visibility = View.GONE
+            }
 
             // User avatar
             loadImage(user.profileImageUrl, binding.userAvatar, R.drawable.ic_user_placeholder)
