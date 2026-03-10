@@ -32,6 +32,15 @@ class AuthRepository(
     }
 
     /**
+     * One-shot read of the current user's following list from the local Room cache.
+     * Call [refreshUserFromRemote] first if the cache may be stale.
+     */
+    suspend fun getFollowingListOnce(): List<String> {
+        val uid = currentUserId() ?: return emptyList()
+        return userDao.getByIdOnce(uid)?.following ?: emptyList()
+    }
+
+    /**
      * Observe user profile from local cache (Room).
      * UI should observe this.
      */

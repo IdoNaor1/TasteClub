@@ -59,6 +59,32 @@ class ReviewRepository(
         return page
     }
 
+    /**
+     * Pull a page of reviews from the accounts the current user follows.
+     * On first load (lastCreatedAt == null) the feed cache is replaced so Room's
+     * observeFeed() only surfaces following-filtered posts.
+     * On subsequent pages the new posts are appended to the cache.
+     */
+    suspend fun refreshFollowingFeedPage(
+        followingIds: List<String>,
+        limit: Int,
+        lastCreatedAt: Long? = null
+    ): List<Review> {
+        val page = firestoreSource.getFollowingFeedPage(
+            followingIds = followingIds,
+            limit = limit,
+            lastCreatedAt = lastCreatedAt
+        )
+        if (lastCreatedAt == null) {
+            // First load — wipe old cache so Room only shows the filtered feed
+            reviewDao.deleteAll()
+        }
+        if (page.isNotEmpty()) {
+            reviewDao.upsertAll(page.map { it.toEntity() })
+        }
+        return page
+    }
+
     suspend fun refreshUserReviewsPage(
         userId: String,
         limit: Int,

@@ -72,6 +72,9 @@
     <string name="write_a_review">Write a Review</string>
     <string name="error_loading_feed">Failed to load reviews</string>
     <string name="retry">Retry</string>
+    <string name="no_following_title">Your Feed is Empty</string>
+    <string name="no_following_description">Follow people to see their restaurant reviews here.</string>
+    <string name="discover_people">Discover People</string>
 
     <!-- My Posts -->
     <string name="my_reviews">My Reviews</string>
