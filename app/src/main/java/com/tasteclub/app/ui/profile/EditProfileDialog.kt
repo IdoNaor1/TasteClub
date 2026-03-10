@@ -1,7 +1,6 @@
 ﻿package com.tasteclub.app.ui.profile
 import android.app.Dialog
 import android.os.Bundle
-import android.util.Patterns
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,18 +13,18 @@ class EditProfileDialog : DialogFragment() {
     private var listener: OnProfileUpdatedListener? = null
     companion object {
         private const val ARG_NAME = "name"
-        private const val ARG_EMAIL = "email"
-        fun newInstance(name: String, email: String): EditProfileDialog {
+        private const val ARG_BIO = "bio"
+        fun newInstance(name: String, bio: String): EditProfileDialog {
             val fragment = EditProfileDialog()
             val args = Bundle()
             args.putString(ARG_NAME, name)
-            args.putString(ARG_EMAIL, email)
+            args.putString(ARG_BIO, bio)
             fragment.arguments = args
             return fragment
         }
     }
     interface OnProfileUpdatedListener {
-        fun onProfileUpdated(name: String, email: String)
+        fun onProfileUpdated(name: String, bio: String)
     }
     fun setOnProfileUpdatedListener(listener: OnProfileUpdatedListener) {
         this.listener = listener
@@ -42,7 +41,7 @@ class EditProfileDialog : DialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         arguments?.let {
             binding.nameEditText.setText(it.getString(ARG_NAME))
-            binding.emailEditText.setText(it.getString(ARG_EMAIL))
+            binding.bioEditText.setText(it.getString(ARG_BIO))
         }
         setupClickListeners()
     }
@@ -59,8 +58,8 @@ class EditProfileDialog : DialogFragment() {
             saveButton.setOnClickListener {
                 if (validateInputs()) {
                     val name = nameEditText.text.toString().trim()
-                    val email = emailEditText.text.toString().trim()
-                    listener?.onProfileUpdated(name, email)
+                    val bio = bioEditText.text.toString().trim()
+                    listener?.onProfileUpdated(name, bio)
                     dismiss()
                 }
             }
@@ -68,7 +67,7 @@ class EditProfileDialog : DialogFragment() {
     }
     private fun validateInputs(): Boolean {
         val name = binding.nameEditText.text.toString().trim()
-        val email = binding.emailEditText.text.toString().trim()
+        val bio = binding.bioEditText.text.toString().trim()
         if (name.isEmpty()) {
             binding.nameLayout.error = "Name is required"
             return false
@@ -78,15 +77,11 @@ class EditProfileDialog : DialogFragment() {
             return false
         }
         binding.nameLayout.error = null
-        if (email.isEmpty()) {
-            binding.emailLayout.error = getString(R.string.error_email_required)
+        if (bio.length > 150) {
+            binding.bioLayout.error = "Bio must be 150 characters or less"
             return false
         }
-        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            binding.emailLayout.error = getString(R.string.error_email_invalid)
-            return false
-        }
-        binding.emailLayout.error = null
+        binding.bioLayout.error = null
         return true
     }
     override fun onDestroyView() {

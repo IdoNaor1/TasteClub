@@ -107,6 +107,7 @@
     <string name="following">Following</string>
     <string name="followers">Followers</string>
     <string name="name">Name</string>
+    <string name="bio">Bio</string>
     <string name="save_changes">Save Changes</string>
     <string name="profile_updated">Profile updated successfully</string>
     <string name="update_profile_picture">Update Profile Picture</string>
@@ -220,5 +221,11 @@
     <string name="count_25_plus">25+</string>
     <string name="clear_filters">Clear</string>
     <string name="apply_filters">Apply</string>
+
+    <!-- Other User Profile -->
+    <string name="follow">Follow</string>
+    <string name="following_button">Following</string>
+    <string name="other_profile_no_reviews">This user hasn\'t written any reviews yet.</string>
+    <string name="reviews_section_count">Reviews (%1$d)</string>
 
 </resources>

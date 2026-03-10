@@ -131,7 +131,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             user?.let {
                 binding.apply {
                     userName.text = it.userName
-                    userEmail.text = it.email
+                    userBio.text = it.bio.ifEmpty { "No bio yet" }
 
                     // Load profile image
                     if (it.profileImageUrl.isNotEmpty()) {
@@ -289,11 +289,11 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
         val dialog = EditProfileDialog.newInstance(
             currentUser.userName,
-            currentUser.email
+            currentUser.bio
         )
         dialog.setOnProfileUpdatedListener(object : EditProfileDialog.OnProfileUpdatedListener {
-            override fun onProfileUpdated(name: String, email: String) {
-                viewModel.updateProfile(name, email)
+            override fun onProfileUpdated(name: String, bio: String) {
+                viewModel.updateProfile(name, bio)
             }
         })
         dialog.show(childFragmentManager, "EditProfileDialog")
