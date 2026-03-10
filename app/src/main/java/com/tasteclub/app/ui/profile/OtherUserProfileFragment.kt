@@ -200,34 +200,42 @@ class OtherUserProfileFragment : Fragment() {
         viewModel.isFollowLoading.observe(viewLifecycleOwner) { loading ->
             binding.followButton.isEnabled = !loading
         }
+
+        // Follow error (rollback already applied in repo – just inform the user)
+        viewModel.followError.observe(viewLifecycleOwner) { error ->
+            if (!error.isNullOrEmpty()) {
+                Toast.makeText(context, error, Toast.LENGTH_LONG).show()
+                viewModel.clearFollowError()
+            }
+        }
     }
 
     /**
      * Toggle button appearance between Follow and Following states.
+     * Every property is explicitly set in both branches so re-entry never shows stale styles.
      */
     private fun updateFollowButton(isFollowing: Boolean) {
+        val primaryBrown = resources.getColor(R.color.primary_brown, null)
+        val white = resources.getColor(R.color.white, null)
+        val strokePx = (2 * resources.displayMetrics.density).toInt()
+
         if (isFollowing) {
             binding.followButton.text = getString(R.string.following_button)
-            binding.followButton.setBackgroundColor(
-                android.graphics.Color.TRANSPARENT
-            )
-            binding.followButton.setTextColor(
-                resources.getColor(R.color.primary_brown, null)
-            )
+            // Transparent fill
+            binding.followButton.backgroundTintList =
+                android.content.res.ColorStateList.valueOf(android.graphics.Color.TRANSPARENT)
+            binding.followButton.setTextColor(primaryBrown)
             binding.followButton.strokeColor =
-                android.content.res.ColorStateList.valueOf(
-                    resources.getColor(R.color.primary_brown, null)
-                )
-            binding.followButton.strokeWidth = 2
+                android.content.res.ColorStateList.valueOf(primaryBrown)
+            binding.followButton.strokeWidth = strokePx
         } else {
             binding.followButton.text = getString(R.string.follow)
+            // Solid primary_brown fill
             binding.followButton.backgroundTintList =
-                android.content.res.ColorStateList.valueOf(
-                    resources.getColor(R.color.primary_brown, null)
-                )
-            binding.followButton.setTextColor(
-                resources.getColor(R.color.white, null)
-            )
+                android.content.res.ColorStateList.valueOf(primaryBrown)
+            binding.followButton.setTextColor(white)
+            binding.followButton.strokeColor =
+                android.content.res.ColorStateList.valueOf(android.graphics.Color.TRANSPARENT)
             binding.followButton.strokeWidth = 0
         }
     }

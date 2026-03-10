@@ -11,6 +11,8 @@ data class UserEntity(
     val profileImageUrl: String,
     val bio: String,
 
+    // Social – stored as JSON list via Converters.fromStringList / toStringList
+    val following: List<String> = emptyList(),
     val followersCount: Int,
     val followingCount: Int,
 
