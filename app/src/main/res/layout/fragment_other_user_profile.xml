@@ -241,8 +241,7 @@
                 android:layout_height="wrap_content"
                 android:clipToPadding="false"
                 android:nestedScrollingEnabled="false"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
+                android:paddingBottom="16dp"
                 tools:listitem="@layout/item_review_card"
                 tools:itemCount="3" />
 

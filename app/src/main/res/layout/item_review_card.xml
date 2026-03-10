@@ -77,22 +77,38 @@
             app:layout_constraintTop_toBottomOf="@id/userAvatarImageView"
             tools:visibility="visible" />
 
-        <!-- Restaurant name (tappable) -->
-        <TextView
-            android:id="@+id/restaurantNameTextView"
-            android:layout_width="0dp"
+        <!-- Restaurant info row (icon + name), matching discover tab -->
+        <LinearLayout
+            android:id="@+id/restaurantInfoRow"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:background="?attr/selectableItemBackground"
-            android:textColor="@color/accent_caramel"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:maxLines="1"
-            android:ellipsize="end"
-            tools:text="Joe's Diner"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/restaurantImageView" />
+            app:layout_constraintTop_toBottomOf="@id/restaurantImageView">
+
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:src="@drawable/ic_location"
+                android:contentDescription="@string/location_icon_desc"
+                app:tint="@color/text_secondary" />
+
+            <TextView
+                android:id="@+id/restaurantNameTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:background="?attr/selectableItemBackground"
+                android:textColor="@color/accent_caramel"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:maxLines="1"
+                android:ellipsize="end"
+                tools:text="Joe's Diner" />
+
+        </LinearLayout>
 
         <!-- Restaurant address (secondary line) -->
         <TextView
@@ -107,7 +123,7 @@
             tools:text="123 Main St, New York, NY"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/restaurantNameTextView" />
+            app:layout_constraintTop_toBottomOf="@id/restaurantInfoRow" />
 
         <!-- 5-star rating row -->
         <LinearLayout

@@ -18,7 +18,8 @@
             android:id="@+id/reviewsRecyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:padding="16dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="16dp"
             android:clipToPadding="false"
             tools:listitem="@layout/item_review_card" />
 

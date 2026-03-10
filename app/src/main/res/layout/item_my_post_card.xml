@@ -16,12 +16,25 @@
         android:layout_height="wrap_content"
         android:padding="12dp">
 
+        <!-- Date at top-left -->
+        <TextView
+            android:id="@+id/dateTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="6dp"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp"
+            tools:text="Dec 28, 2024"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <!-- Food image with edit FAB overlay -->
         <FrameLayout
             android:id="@+id/imageContainer"
             android:layout_width="0dp"
             android:layout_height="160dp"
-            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/dateTextView"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
@@ -51,22 +64,38 @@
 
         </FrameLayout>
 
-        <!-- Restaurant name (tappable) -->
-        <TextView
-            android:id="@+id/restaurantNameTextView"
-            android:layout_width="0dp"
+        <!-- Restaurant info row (icon + name), matching discover tab -->
+        <LinearLayout
+            android:id="@+id/restaurantInfoRow"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:background="?attr/selectableItemBackground"
-            android:textColor="@color/accent_caramel"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:maxLines="1"
-            android:ellipsize="end"
-            tools:text="Golden Dragon"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/imageContainer" />
+            app:layout_constraintTop_toBottomOf="@id/imageContainer">
+
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:src="@drawable/ic_location"
+                android:contentDescription="@string/location_icon_desc"
+                app:tint="@color/text_secondary" />
+
+            <TextView
+                android:id="@+id/restaurantNameTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:background="?attr/selectableItemBackground"
+                android:textColor="@color/accent_caramel"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:maxLines="1"
+                android:ellipsize="end"
+                tools:text="Golden Dragon" />
+
+        </LinearLayout>
 
         <!-- Restaurant address (secondary line) -->
         <TextView
@@ -81,21 +110,7 @@
             tools:text="888 Chinatown Plaza, Downtown"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/restaurantNameTextView" />
-
-        <!-- Date -->
-        <TextView
-            android:id="@+id/dateTextView"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textColor="@color/text_secondary"
-            android:textSize="12sp"
-            android:alpha="0.7"
-            tools:text="Dec 28, 2024"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/restaurantAddressTextView" />
+            app:layout_constraintTop_toBottomOf="@id/restaurantInfoRow" />
 
         <!-- Star rating (5-star row) -->
         <LinearLayout
@@ -105,7 +120,7 @@
             android:orientation="horizontal"
             android:layout_marginTop="8dp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/dateTextView">
+            app:layout_constraintTop_toBottomOf="@id/restaurantAddressTextView">
 
             <ImageView
                 android:id="@+id/star1ImageView"
