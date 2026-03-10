@@ -90,6 +90,65 @@ class FirestoreSource(
         usersCol.document(uid).delete().await()
     }
 
+    /**
+     * Follow another user.
+     * Adds targetUid to current user's "following" array and increments counts.
+     */
+    suspend fun followUser(currentUid: String, targetUid: String) {
+        require(currentUid.isNotBlank()) { "currentUid must not be blank" }
+        require(targetUid.isNotBlank()) { "targetUid must not be blank" }
+        require(currentUid != targetUid) { "Cannot follow yourself" }
+
+        val currentRef = usersCol.document(currentUid)
+        val targetRef = usersCol.document(targetUid)
+
+        // Add targetUid to current user's following list & bump followingCount
+        currentRef.update(
+            mapOf(
+                "following" to FieldValue.arrayUnion(targetUid),
+                "followingCount" to FieldValue.increment(1),
+                "lastUpdated" to nowMillis()
+            )
+        ).await()
+
+        // Bump target user's followersCount
+        targetRef.update(
+            mapOf(
+                "followersCount" to FieldValue.increment(1),
+                "lastUpdated" to nowMillis()
+            )
+        ).await()
+    }
+
+    /**
+     * Unfollow another user.
+     * Removes targetUid from current user's "following" array and decrements counts.
+     */
+    suspend fun unfollowUser(currentUid: String, targetUid: String) {
+        require(currentUid.isNotBlank()) { "currentUid must not be blank" }
+        require(targetUid.isNotBlank()) { "targetUid must not be blank" }
+
+        val currentRef = usersCol.document(currentUid)
+        val targetRef = usersCol.document(targetUid)
+
+        // Remove targetUid from current user's following list & decrement followingCount
+        currentRef.update(
+            mapOf(
+                "following" to FieldValue.arrayRemove(targetUid),
+                "followingCount" to FieldValue.increment(-1),
+                "lastUpdated" to nowMillis()
+            )
+        ).await()
+
+        // Decrement target user's followersCount
+        targetRef.update(
+            mapOf(
+                "followersCount" to FieldValue.increment(-1),
+                "lastUpdated" to nowMillis()
+            )
+        ).await()
+    }
+
     // ----------------------------
     // Reviews
     // ----------------------------

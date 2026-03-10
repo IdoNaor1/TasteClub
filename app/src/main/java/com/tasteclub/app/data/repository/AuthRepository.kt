@@ -148,6 +148,30 @@ class AuthRepository(
         // Optional: clean local cache
     }
 
+    /**
+     * Follow another user.
+     * Updates Firestore counts/arrays and refreshes both users locally.
+     */
+    suspend fun followUser(targetUid: String) {
+        val currentUid = currentUserId() ?: throw IllegalStateException("Not logged in")
+        firestoreSource.followUser(currentUid, targetUid)
+        // Refresh both users in local cache
+        refreshUserFromRemote(currentUid)
+        refreshUserFromRemote(targetUid)
+    }
+
+    /**
+     * Unfollow another user.
+     * Updates Firestore counts/arrays and refreshes both users locally.
+     */
+    suspend fun unfollowUser(targetUid: String) {
+        val currentUid = currentUserId() ?: throw IllegalStateException("Not logged in")
+        firestoreSource.unfollowUser(currentUid, targetUid)
+        // Refresh both users in local cache
+        refreshUserFromRemote(currentUid)
+        refreshUserFromRemote(targetUid)
+    }
+
     suspend fun sendPasswordReset(email: String) {
         authSource.sendPasswordReset(email)
     }

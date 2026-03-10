@@ -78,16 +78,16 @@
                     android:textStyle="bold"
                     tools:text="Alex Chen" />
 
-                <!-- User Email -->
+                <!-- User Bio -->
                 <TextView
-                    android:id="@+id/userEmail"
+                    android:id="@+id/userBio"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="4dp"
                     android:textColor="@color/text_secondary"
                     android:textSize="14sp"
-                    tools:text="idonaor15.do@gmail.com" />
+                    tools:text="Food enthusiast &amp; home chef" />
 
                 <!-- Divider -->
                 <View

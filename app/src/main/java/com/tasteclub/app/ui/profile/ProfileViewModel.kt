@@ -126,12 +126,12 @@ class ProfileViewModel(
     // --------------------
 
     /**
-     * Update user profile (name and email)
+     * Update user profile (name and bio)
      *
      * @param name New user name
-     * @param email New email address
+     * @param bio New bio text
      */
-    fun updateProfile(name: String, email: String) {
+    fun updateProfile(name: String, bio: String) {
         viewModelScope.launch {
             try {
                 // Validate inputs
@@ -145,8 +145,8 @@ class ProfileViewModel(
                     return@launch
                 }
 
-                if (email.isBlank() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                    _profileState.value = ProfileState.Error("Invalid email format")
+                if (bio.length > 150) {
+                    _profileState.value = ProfileState.Error("Bio must be 150 characters or less")
                     return@launch
                 }
 
@@ -162,16 +162,10 @@ class ProfileViewModel(
                 authRepository.updateProfile(
                     uid = userId,
                     userName = name,
-                    bio = null, // Not changing bio in this update
+                    bio = bio,
                     profileImageUrl = null // Not changing profile image in this update
                 )
 
-                // Update email in Firebase Auth if changed
-                val currentUser = currentUser.value
-                if (currentUser != null && currentUser.email != email) {
-                    // Note: This may require re-authentication in production
-                    com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.updateEmail(email)
-                }
 
                 // Refresh user data
                 authRepository.refreshUserFromRemote(userId)
