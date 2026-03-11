@@ -18,12 +18,6 @@ import java.util.*
 
 /**
  * MyPostsAdapter - RecyclerView adapter for displaying user's own reviews
- * Uses shared Review data model and ReviewDiffCallback from common package
- *
- * Key differences from Feed:
- * - Uses item_my_post_card layout (no user header, has edit/delete buttons)
- * - Full date format instead of relative time
- * - Edit and delete click handlers
  */
 class MyPostsAdapter(
     private val currentUserId: String,
@@ -41,13 +35,9 @@ class MyPostsAdapter(
     }
 
     override fun onBindViewHolder(holder: MyPostViewHolder, position: Int) {
-        val review = getItem(position)
-        holder.bind(review)
+        holder.bind(getItem(position))
     }
 
-    /**
-     * ViewHolder for My Post items
-     */
     class MyPostViewHolder(
         itemView: View,
         private val currentUserId: String,
@@ -60,7 +50,8 @@ class MyPostsAdapter(
 
         private val restaurantImageView: ImageView = itemView.findViewById(R.id.restaurantImageView)
         private val editFab: FloatingActionButton = itemView.findViewById(R.id.editFab)
-        private val restaurantNameTextView: MaterialButton = itemView.findViewById(R.id.restaurantNameTextView)
+        // restaurantNameTextView is now a TextView (was MaterialButton)
+        private val restaurantNameTextView: TextView = itemView.findViewById(R.id.restaurantNameTextView)
         private val restaurantAddressTextView: TextView = itemView.findViewById(R.id.restaurantAddressTextView)
         private val dateTextView: TextView = itemView.findViewById(R.id.dateTextView)
         private val reviewTextView: TextView = itemView.findViewById(R.id.reviewTextView)
@@ -79,7 +70,6 @@ class MyPostsAdapter(
         private val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
 
         fun bind(review: Review) {
-            // Set restaurant details
             restaurantNameTextView.text = review.restaurantName
             restaurantAddressTextView.text = review.restaurantAddress
 
@@ -90,14 +80,10 @@ class MyPostsAdapter(
                 }
             }
 
-            // Format date as "Jan 15, 2026"
-            val date = Date(review.createdAt)
-            dateTextView.text = dateFormat.format(date)
-
-            // Set review text
+            dateTextView.text = dateFormat.format(Date(review.createdAt))
             reviewTextView.text = review.text
 
-            // Load restaurant image
+            // Load food image
             if (review.imageUrl.isNotBlank()) {
                 Picasso.get()
                     .load(review.imageUrl)
@@ -110,17 +96,11 @@ class MyPostsAdapter(
                 restaurantImageView.setImageResource(R.drawable.image_placeholder)
             }
 
-            // Set star rating
+            // Star rating
             setStarRating(review.rating)
 
-            // Setup click listeners
-            editFab.setOnClickListener {
-                onEditClick(review)
-            }
-
-            deleteButton.setOnClickListener {
-                onDeleteClick(review)
-            }
+            editFab.setOnClickListener { onEditClick(review) }
+            deleteButton.setOnClickListener { onDeleteClick(review) }
 
             // Like button
             val isLiked = review.likedBy.contains(currentUserId)
@@ -130,7 +110,7 @@ class MyPostsAdapter(
             likeCountTextView.text = review.likedBy.size.toString()
             likeButton.setOnClickListener { onLikeClick(review) }
 
-            // Comment count — filled icon when there are comments, outline when zero
+            // Comment button
             val hasComments = review.commentCount > 0
             commentButton.setImageResource(
                 if (hasComments) R.drawable.ic_comment else R.drawable.ic_comment_outline
@@ -140,24 +120,12 @@ class MyPostsAdapter(
             tvCommentCount.setOnClickListener { onCommentClick(review) }
         }
 
-        /**
-         * Update star rating display based on rating value
-         */
         private fun setStarRating(rating: Int) {
-            val stars = listOf(
-                star1ImageView,
-                star2ImageView,
-                star3ImageView,
-                star4ImageView,
-                star5ImageView
-            )
-
-            stars.forEachIndexed { index, starImageView ->
-                if (index < rating) {
-                    starImageView.setImageResource(R.drawable.ic_star_filled)
-                } else {
-                    starImageView.setImageResource(R.drawable.ic_star_outline)
-                }
+            val stars = listOf(star1ImageView, star2ImageView, star3ImageView, star4ImageView, star5ImageView)
+            stars.forEachIndexed { index, star ->
+                star.setImageResource(
+                    if (index < rating) R.drawable.ic_star_filled else R.drawable.ic_star_outline
+                )
             }
         }
     }

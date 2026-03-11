@@ -161,6 +161,10 @@ class OtherUserProfileViewModel(
     // --------------------
     // Follow / Unfollow
     // --------------------
+
+    private val _followError = MutableLiveData<String?>(null)
+    val followError: LiveData<String?> = _followError
+
     fun toggleFollow() {
         if (_isFollowLoading.value == true) return
         val currentlyFollowing = isFollowing.value == true
@@ -175,10 +179,15 @@ class OtherUserProfileViewModel(
                 }
             } catch (e: Exception) {
                 Log.w(TAG, "Follow/unfollow failed: ${e.message}")
+                _followError.value = e.message ?: "Action failed – please try again"
             } finally {
                 _isFollowLoading.value = false
             }
         }
+    }
+
+    fun clearFollowError() {
+        _followError.value = null
     }
 
     // --------------------

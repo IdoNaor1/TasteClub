@@ -32,6 +32,15 @@ class AuthRepository(
     }
 
     /**
+     * One-shot read of the current user's following list from the local Room cache.
+     * Call [refreshUserFromRemote] first if the cache may be stale.
+     */
+    suspend fun getFollowingListOnce(): List<String> {
+        val uid = currentUserId() ?: return emptyList()
+        return userDao.getByIdOnce(uid)?.following ?: emptyList()
+    }
+
+    /**
      * Observe user profile from local cache (Room).
      * UI should observe this.
      */
@@ -150,26 +159,94 @@ class AuthRepository(
 
     /**
      * Follow another user.
-     * Updates Firestore counts/arrays and refreshes both users locally.
+     * Applies an optimistic local update immediately so the UI responds instantly.
+     * On success, reconciles Room with the authoritative Firestore data.
+     * On failure, rolls back the optimistic update so counts stay consistent.
      */
     suspend fun followUser(targetUid: String) {
         val currentUid = currentUserId() ?: throw IllegalStateException("Not logged in")
-        firestoreSource.followUser(currentUid, targetUid)
-        // Refresh both users in local cache
-        refreshUserFromRemote(currentUid)
-        refreshUserFromRemote(targetUid)
+
+        // --- Snapshot state before optimistic update (for rollback) ---
+        val currentUserEntityBefore = userDao.getByIdOnce(currentUid)
+        val targetUserEntityBefore = userDao.getByIdOnce(targetUid)
+
+        // --- Optimistic local update ---
+        if (currentUserEntityBefore != null) {
+            userDao.upsert(
+                currentUserEntityBefore.copy(
+                    following = (currentUserEntityBefore.following + targetUid).distinct(),
+                    followingCount = currentUserEntityBefore.followingCount + 1,
+                    lastUpdated = System.currentTimeMillis()
+                )
+            )
+        }
+        if (targetUserEntityBefore != null) {
+            userDao.upsert(
+                targetUserEntityBefore.copy(
+                    followersCount = targetUserEntityBefore.followersCount + 1,
+                    lastUpdated = System.currentTimeMillis()
+                )
+            )
+        }
+
+        // --- Remote sync ---
+        try {
+            firestoreSource.followUser(currentUid, targetUid)
+            // Success: reconcile with authoritative remote data
+            refreshUserFromRemote(currentUid)
+            refreshUserFromRemote(targetUid)
+        } catch (e: Exception) {
+            // Failure: roll back optimistic updates so Room stays consistent
+            if (currentUserEntityBefore != null) userDao.upsert(currentUserEntityBefore)
+            if (targetUserEntityBefore != null) userDao.upsert(targetUserEntityBefore)
+            throw e
+        }
     }
 
     /**
      * Unfollow another user.
-     * Updates Firestore counts/arrays and refreshes both users locally.
+     * Applies an optimistic local update immediately so the UI responds instantly.
+     * On success, reconciles Room with the authoritative Firestore data.
+     * On failure, rolls back the optimistic update so counts stay consistent.
      */
     suspend fun unfollowUser(targetUid: String) {
         val currentUid = currentUserId() ?: throw IllegalStateException("Not logged in")
-        firestoreSource.unfollowUser(currentUid, targetUid)
-        // Refresh both users in local cache
-        refreshUserFromRemote(currentUid)
-        refreshUserFromRemote(targetUid)
+
+        // --- Snapshot state before optimistic update (for rollback) ---
+        val currentUserEntityBefore = userDao.getByIdOnce(currentUid)
+        val targetUserEntityBefore = userDao.getByIdOnce(targetUid)
+
+        // --- Optimistic local update ---
+        if (currentUserEntityBefore != null) {
+            userDao.upsert(
+                currentUserEntityBefore.copy(
+                    following = currentUserEntityBefore.following.filter { it != targetUid },
+                    followingCount = maxOf(0, currentUserEntityBefore.followingCount - 1),
+                    lastUpdated = System.currentTimeMillis()
+                )
+            )
+        }
+        if (targetUserEntityBefore != null) {
+            userDao.upsert(
+                targetUserEntityBefore.copy(
+                    followersCount = maxOf(0, targetUserEntityBefore.followersCount - 1),
+                    lastUpdated = System.currentTimeMillis()
+                )
+            )
+        }
+
+        // --- Remote sync ---
+        try {
+            firestoreSource.unfollowUser(currentUid, targetUid)
+            // Success: reconcile with authoritative remote data
+            refreshUserFromRemote(currentUid)
+            refreshUserFromRemote(targetUid)
+        } catch (e: Exception) {
+            // Failure: roll back optimistic updates so Room stays consistent
+            if (currentUserEntityBefore != null) userDao.upsert(currentUserEntityBefore)
+            if (targetUserEntityBefore != null) userDao.upsert(targetUserEntityBefore)
+            throw e
+        }
     }
 
     suspend fun sendPasswordReset(email: String) {

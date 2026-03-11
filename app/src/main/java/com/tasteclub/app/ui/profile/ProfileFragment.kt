@@ -143,6 +143,10 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
                     } else {
                         profileImage.setImageResource(R.drawable.ic_user_placeholder)
                     }
+
+                    // Social counts – live from Room cache (updated after every follow/unfollow)
+                    followingCountText.text = it.followingCount.toString()
+                    followersCountText.text = it.followersCount.toString()
                 }
             }
         }

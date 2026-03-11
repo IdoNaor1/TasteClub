@@ -12,14 +12,11 @@ import com.tasteclub.app.data.repository.ReviewRepository
 import kotlinx.coroutines.launch
 
 /**
- * FeedViewModel - Manages the main feed screen state and business logic
+ * FeedViewModel - Manages the main feed screen state and business logic.
  *
- * Implements MVVM pattern with:
- * - LiveData for reactive UI updates
- * - Sealed class for state management
- * - Pagination support with page tracking
- * - Pull-to-refresh functionality
- * - Proper error handling
+ * The feed only shows posts from users the current user follows.
+ * When the following list is empty a dedicated NoFollowing state is emitted
+ * so the UI can prompt the user to find people on the Discover screen.
  */
 class FeedViewModel(
     private val reviewRepository: ReviewRepository,
@@ -31,67 +28,47 @@ class FeedViewModel(
     // State Management
     // --------------------
 
-    // Current user ID for like state
     val currentUserId: String
         get() = authRepository.currentUserId() ?: ""
 
-    /**
-     * Sealed class representing all possible states of the feed
-     */
     sealed class FeedState {
         object Loading : FeedState()
         data class Success(val reviews: List<Review>) : FeedState()
         data class Error(val message: String) : FeedState()
         object Empty : FeedState()
+        /** Current user follows nobody yet — prompt them to discover people. */
+        object NoFollowing : FeedState()
     }
 
-    // Private mutable state
     private val _feedState = MutableLiveData<FeedState>(FeedState.Loading)
-    // Public immutable state for UI
     val feedState: LiveData<FeedState> = _feedState
 
-    // Pagination tracking
     private val _isLoadingMore = MutableLiveData<Boolean>(false)
     val isLoadingMore: LiveData<Boolean> = _isLoadingMore
 
-    private var currentPage = 0
+    // Pagination
     private var lastCreatedAt: Long? = null
     private var hasMorePages = true
     private val pageSize = 10
 
-    // Cache of all loaded reviews
+    // In-memory cache of the current feed page
     private val allReviews = mutableListOf<Review>()
 
+    // The following list resolved at load/refresh time — stable for the lifetime of a load cycle
+    private var followingIds: List<String> = emptyList()
+
     init {
-        // Observe feed from local database for reactive updates
         observeLocalFeed()
-        // Load initial data from Firestore
         loadInitialReviews()
     }
 
     // --------------------
-    // Public Functions
+    // Public API
     // --------------------
 
-    /**
-     * Fetch all reviews from repository - initial load
-     */
-    fun getAllReviews() {
-        if (_feedState.value is FeedState.Loading) {
-            return // Already loading
-        }
-
-        _feedState.value = FeedState.Loading
-        loadInitialReviews()
-    }
-
-    /**
-     * Toggle like on a review for the current user.
-     */
     fun toggleLike(reviewId: String) {
         val userId = currentUserId
         if (userId.isBlank()) return
-
         viewModelScope.launch {
             try {
                 reviewRepository.toggleLike(reviewId, userId)
@@ -101,10 +78,6 @@ class FeedViewModel(
         }
     }
 
-    /**
-     * Patch the comment count for a single review in the feed list.
-     * Called from FeedFragment when CommentsBottomSheet reports a count change.
-     */
     fun updateCommentCount(reviewId: String, newCount: Int) {
         val idx = allReviews.indexOfFirst { it.id == reviewId }
         if (idx == -1) return
@@ -112,90 +85,63 @@ class FeedViewModel(
         _feedState.value = FeedState.Success(allReviews.toList())
     }
 
-    /**
-     * Pull-to-refresh implementation
-     * Clears local cache and fetches fresh data from Firestore
-     */
+    /** Pull-to-refresh: re-resolves the following list and fetches a fresh first page. */
     fun refreshFeed() {
         viewModelScope.launch {
             try {
-                // Reset pagination state
-                currentPage = 0
-                lastCreatedAt = null
-                hasMorePages = true
-                allReviews.clear()
+                resetPagination()
 
-                // Fetch first page from Firestore
-                val reviews = reviewRepository.refreshFeedPage(
+                // Always refresh the user profile first so the following list is up-to-date
+                val uid = authRepository.currentUserId()
+                if (uid != null) authRepository.refreshUserFromRemote(uid)
+
+                followingIds = authRepository.getFollowingListOnce()
+
+                if (followingIds.isEmpty()) {
+                    _feedState.value = FeedState.NoFollowing
+                    return@launch
+                }
+
+                val reviews = reviewRepository.refreshFollowingFeedPage(
+                    followingIds = followingIds,
                     limit = pageSize,
                     lastCreatedAt = null
                 )
 
-                // Update pagination tracking
-                if (reviews.isNotEmpty()) {
-                    lastCreatedAt = reviews.last().createdAt
-                    hasMorePages = reviews.size == pageSize
-                    allReviews.addAll(reviews)
-                } else {
-                    hasMorePages = false
-                }
+                updatePaginationState(reviews)
+                _feedState.value = if (reviews.isEmpty()) FeedState.Empty
+                                   else FeedState.Success(allReviews.toList())
 
-                // Update state based on results
-                _feedState.value = when {
-                    reviews.isEmpty() -> FeedState.Empty
-                    else -> FeedState.Success(reviews)
-                }
-
-                if (allReviews.isNotEmpty()) {
-                    fetchAndPatchCommentCounts(allReviews.map { it.id })
-                }
+                if (allReviews.isNotEmpty()) fetchAndPatchCommentCounts(allReviews.map { it.id })
 
             } catch (e: Exception) {
-                _feedState.value = FeedState.Error(
-                    e.message ?: "Failed to refresh feed"
-                )
+                _feedState.value = FeedState.Error(e.message ?: "Failed to refresh feed")
             }
         }
     }
 
-    /**
-     * Lazy loading/pagination - Load next page of reviews
-     * Called when user scrolls near bottom
-     */
+    /** Pagination — load next page using the cursor from the previous page. */
     fun loadMoreReviews() {
-        // Prevent duplicate loading requests
-        if (_isLoadingMore.value == true || !hasMorePages) {
-            return
-        }
+        if (_isLoadingMore.value == true || !hasMorePages || followingIds.isEmpty()) return
 
         _isLoadingMore.value = true
-
         viewModelScope.launch {
             try {
-                // Fetch next page using cursor
-                val reviews = reviewRepository.refreshFeedPage(
+                val reviews = reviewRepository.refreshFollowingFeedPage(
+                    followingIds = followingIds,
                     limit = pageSize,
                     lastCreatedAt = lastCreatedAt
                 )
 
-                // Update pagination state
                 if (reviews.isNotEmpty()) {
                     lastCreatedAt = reviews.last().createdAt
                     hasMorePages = reviews.size == pageSize
-                    currentPage++
-
-                    // Add to cache
                     allReviews.addAll(reviews)
-
-                    // Update UI with combined list
                     _feedState.value = FeedState.Success(allReviews.toList())
-
-                    // Fetch counts for the newly loaded page
                     fetchAndPatchCommentCounts(reviews.map { it.id })
                 } else {
                     hasMorePages = false
                 }
-
             } catch (e: Exception) {
                 _feedState.value = FeedState.Error(e.message ?: "Failed to load more reviews")
             } finally {
@@ -205,62 +151,58 @@ class FeedViewModel(
     }
 
     // --------------------
-    // Private Helper Functions
+    // Private helpers
     // --------------------
 
     /**
-     * Observe local Room database for reactive updates.
-     * Preserves any in-memory commentCount values already patched into allReviews
-     * so a Room emission never resets counts back to 0.
+     * Observe Room so any local write (like toggle, new post) is reflected reactively.
+     * We skip Room updates while Loading or NoFollowing to avoid clobbering those states.
      */
     private fun observeLocalFeed() {
         reviewRepository.observeFeed().observeForever { reviews ->
-            if (_feedState.value !is FeedState.Loading && reviews.isNotEmpty()) {
-                // Build a lookup of counts we already know about
-                val knownCounts = allReviews.associate { it.id to it.commentCount }
-                val merged = reviews.map { review ->
-                    val known = knownCounts[review.id] ?: 0
-                    if (known > 0) review.copy(commentCount = known) else review
-                }
-                // Keep allReviews in sync
-                allReviews.clear()
-                allReviews.addAll(merged)
-                _feedState.value = FeedState.Success(merged)
+            val current = _feedState.value
+            if (current is FeedState.Loading || current is FeedState.NoFollowing) return@observeForever
+            if (reviews.isEmpty()) return@observeForever
+
+            val knownCounts = allReviews.associate { it.id to it.commentCount }
+            val merged = reviews.map { review ->
+                val known = knownCounts[review.id] ?: 0
+                if (known > 0) review.copy(commentCount = known) else review
             }
+            allReviews.clear()
+            allReviews.addAll(merged)
+            _feedState.value = FeedState.Success(merged)
         }
     }
 
-    /**
-     * Load initial reviews from Firestore, then fetch comment counts in the background.
-     */
     private fun loadInitialReviews() {
         viewModelScope.launch {
             try {
                 _feedState.value = FeedState.Loading
+                resetPagination()
 
-                val reviews = reviewRepository.refreshFeedPage(
+                // Ensure the local user cache is fresh so the following list is accurate
+                val uid = authRepository.currentUserId()
+                if (uid != null) authRepository.refreshUserFromRemote(uid)
+
+                followingIds = authRepository.getFollowingListOnce()
+
+                if (followingIds.isEmpty()) {
+                    _feedState.value = FeedState.NoFollowing
+                    return@launch
+                }
+
+                val reviews = reviewRepository.refreshFollowingFeedPage(
+                    followingIds = followingIds,
                     limit = pageSize,
                     lastCreatedAt = null
                 )
 
-                if (reviews.isNotEmpty()) {
-                    lastCreatedAt = reviews.last().createdAt
-                    hasMorePages = reviews.size == pageSize
-                    allReviews.clear()
-                    allReviews.addAll(reviews)
-                } else {
-                    hasMorePages = false
-                }
+                updatePaginationState(reviews)
+                _feedState.value = if (reviews.isEmpty()) FeedState.Empty
+                                   else FeedState.Success(allReviews.toList())
 
-                _feedState.value = when {
-                    reviews.isEmpty() -> FeedState.Empty
-                    else -> FeedState.Success(allReviews.toList())
-                }
-
-                // Fetch comment counts in the background and patch the list
-                if (allReviews.isNotEmpty()) {
-                    fetchAndPatchCommentCounts(allReviews.map { it.id })
-                }
+                if (allReviews.isNotEmpty()) fetchAndPatchCommentCounts(allReviews.map { it.id })
 
             } catch (e: Exception) {
                 _feedState.value = FeedState.Error(e.message ?: "Failed to load reviews")
@@ -268,9 +210,22 @@ class FeedViewModel(
         }
     }
 
-    /**
-     * Fetch comment counts for the given reviewIds and patch allReviews + state.
-     */
+    private fun resetPagination() {
+        lastCreatedAt = null
+        hasMorePages = true
+        allReviews.clear()
+    }
+
+    private fun updatePaginationState(reviews: List<Review>) {
+        if (reviews.isNotEmpty()) {
+            lastCreatedAt = reviews.last().createdAt
+            hasMorePages = reviews.size == pageSize
+            allReviews.addAll(reviews)
+        } else {
+            hasMorePages = false
+        }
+    }
+
     private suspend fun fetchAndPatchCommentCounts(reviewIds: List<String>) {
         try {
             val counts = commentRepository.getCommentCountsBatch(reviewIds)
@@ -282,20 +237,14 @@ class FeedViewModel(
                     changed = true
                 }
             }
-            if (changed) {
-                _feedState.value = FeedState.Success(allReviews.toList())
-            }
+            if (changed) _feedState.value = FeedState.Success(allReviews.toList())
         } catch (_: Exception) {
-            // Non-fatal — counts stay at 0, will be updated when user opens comments
+            // Non-fatal — counts stay at 0
         }
     }
 
-    /**
-     * Clean up resources when ViewModel is destroyed
-     */
     override fun onCleared() {
         super.onCleared()
-        // Clean up any observers or resources if needed
     }
 }
 

@@ -143,6 +143,9 @@ class FeedFragment : Fragment() {
                 is FeedViewModel.FeedState.Empty -> {
                     showEmptyState()
                 }
+                is FeedViewModel.FeedState.NoFollowing -> {
+                    showNoFollowingState()
+                }
             }
         }
 
@@ -195,7 +198,7 @@ class FeedFragment : Fragment() {
     }
 
     /**
-     * Show empty state with action button
+     * Show empty state with action button (no posts from followed users)
      */
     private fun showEmptyState() {
         binding.swipeRefreshLayout.isRefreshing = false
@@ -203,18 +206,44 @@ class FeedFragment : Fragment() {
         binding.reviewsRecyclerView.visibility = View.GONE
         binding.emptyStateContainer.visibility = View.VISIBLE
 
-        // Inflate empty state layout if not already inflated
-        if (binding.emptyStateContainer.childCount == 0) {
-            val emptyStateBinding = LayoutEmptyStateBinding.inflate(
-                layoutInflater,
-                binding.emptyStateContainer,
-                true
-            )
+        binding.emptyStateContainer.removeAllViews()
+        val emptyStateBinding = LayoutEmptyStateBinding.inflate(
+            layoutInflater,
+            binding.emptyStateContainer,
+            true
+        )
+        emptyStateBinding.emptyStateTitleTextView.text = getString(R.string.empty_feed_title)
+        emptyStateBinding.emptyStateDescriptionTextView.text = getString(R.string.empty_feed_description)
+        emptyStateBinding.emptyStateActionButton.text = getString(R.string.write_a_review)
+        emptyStateBinding.emptyStateActionButton.setOnClickListener {
+            findNavController().navigate(R.id.action_feed_to_create_review)
+        }
+    }
 
-            // Setup action button
-            emptyStateBinding.emptyStateActionButton.setOnClickListener {
-                findNavController().navigate(R.id.action_feed_to_create_review)
-            }
+    /**
+     * Show no-following state — user hasn't followed anyone yet.
+     * CTA navigates to the Discover tab so they can find people.
+     */
+    private fun showNoFollowingState() {
+        binding.swipeRefreshLayout.isRefreshing = false
+        binding.skeletonContainer.visibility = View.GONE
+        binding.reviewsRecyclerView.visibility = View.GONE
+        binding.emptyStateContainer.visibility = View.VISIBLE
+
+        binding.emptyStateContainer.removeAllViews()
+        val emptyStateBinding = LayoutEmptyStateBinding.inflate(
+            layoutInflater,
+            binding.emptyStateContainer,
+            true
+        )
+        emptyStateBinding.emptyStateTitleTextView.text = getString(R.string.no_following_title)
+        emptyStateBinding.emptyStateDescriptionTextView.text = getString(R.string.no_following_description)
+        emptyStateBinding.emptyStateActionButton.text = getString(R.string.discover_people)
+        emptyStateBinding.emptyStateActionButton.setOnClickListener {
+            // Switch to Discover tab via bottom nav
+            requireActivity().findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(
+                R.id.bottom_navigation
+            )?.selectedItemId = R.id.discoverFragment
         }
     }
 

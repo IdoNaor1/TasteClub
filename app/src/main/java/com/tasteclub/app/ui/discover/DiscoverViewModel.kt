@@ -9,6 +9,7 @@ import com.tasteclub.app.data.model.Restaurant
 import com.tasteclub.app.data.model.Review
 import com.tasteclub.app.data.model.User
 import com.tasteclub.app.data.repository.AuthRepository
+import com.tasteclub.app.data.repository.CommentRepository
 import com.tasteclub.app.data.repository.RestaurantRepository
 import com.tasteclub.app.data.repository.ReviewRepository
 import kotlinx.coroutines.launch
@@ -23,7 +24,8 @@ import kotlinx.coroutines.launch
 class DiscoverViewModel(
     private val reviewRepository: ReviewRepository,
     private val restaurantRepository: RestaurantRepository,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val commentRepository: CommentRepository
 ) : ViewModel() {
 
     companion object {
@@ -156,8 +158,10 @@ class DiscoverViewModel(
         viewModelScope.launch {
             try {
                 val updated = reviewRepository.toggleLike(reviewId, userId)
-                // Update both the raw cache and re-filter
-                allReviews = allReviews.map { if (it.id == reviewId) updated else it }
+                // Preserve the existing commentCount (UI-only field, not stored in Firestore/Room)
+                allReviews = allReviews.map {
+                    if (it.id == reviewId) updated.copy(commentCount = it.commentCount) else it
+                }
                 applyFilter()
             } catch (e: Exception) {
                 Log.e(TAG, "toggleLike failed for review=$reviewId", e)
@@ -201,11 +205,34 @@ class DiscoverViewModel(
             } finally {
                 _isLoading.value = false
                 applyFilter()
+                // Fetch comment counts in the background and patch the list
+                if (allReviews.isNotEmpty()) {
+                    fetchAndPatchCommentCounts(allReviews.map { it.id })
+                }
             }
         }
     }
 
     // ---- Private ----
+
+    private suspend fun fetchAndPatchCommentCounts(reviewIds: List<String>) {
+        try {
+            val counts = commentRepository.getCommentCountsBatch(reviewIds)
+            var changed = false
+            counts.forEach { (reviewId, count) ->
+                val idx = allReviews.indexOfFirst { it.id == reviewId }
+                if (idx != -1 && allReviews[idx].commentCount != count) {
+                    allReviews = allReviews.toMutableList().also { it[idx] = it[idx].copy(commentCount = count) }
+                    changed = true
+                }
+            }
+            if (changed) {
+                applyFilter()
+            }
+        } catch (_: Exception) {
+            // Non-fatal — counts stay at 0, will be updated when user opens comments
+        }
+    }
 
     private fun loadAllData() {
         _isLoading.value = true
@@ -218,6 +245,11 @@ class DiscoverViewModel(
 
                 _hasData.value = true
                 applyFilter()
+
+                // Fetch comment counts in the background and patch the list
+                if (allReviews.isNotEmpty()) {
+                    fetchAndPatchCommentCounts(allReviews.map { it.id })
+                }
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to load discover data", e)
                 _hasData.value = allRestaurants.isNotEmpty() ||

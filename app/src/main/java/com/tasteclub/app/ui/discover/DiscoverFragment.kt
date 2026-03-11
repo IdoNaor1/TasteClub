@@ -62,7 +62,8 @@ class DiscoverFragment : Fragment() {
         val reviewRepository = ServiceLocator.provideReviewRepository(requireContext())
         val restaurantRepository = ServiceLocator.provideRestaurantRepository(requireContext())
         val authRepository = ServiceLocator.provideAuthRepository(requireContext())
-        val factory = DiscoverViewModelFactory(reviewRepository, restaurantRepository, authRepository)
+        val commentRepository = ServiceLocator.provideCommentRepository(requireContext())
+        val factory = DiscoverViewModelFactory(reviewRepository, restaurantRepository, authRepository, commentRepository)
         viewModel = ViewModelProvider(this, factory)[DiscoverViewModel::class.java]
     }
 

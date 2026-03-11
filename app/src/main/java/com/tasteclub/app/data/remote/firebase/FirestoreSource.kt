@@ -8,6 +8,9 @@ import com.tasteclub.app.data.model.Comment
 import com.tasteclub.app.data.model.Restaurant
 import com.tasteclub.app.data.model.Review
 import com.tasteclub.app.data.model.User
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.tasks.await
 
 class FirestoreSource(
@@ -299,6 +302,40 @@ class FirestoreSource(
 
         val snap = q.get().await()
         return snap.toObjects(Review::class.java)
+    }
+
+    /**
+     * Following feed with cursor:
+     * Fetches the latest [limit] reviews from each followed user in parallel,
+     * merges the results and returns the top [limit] sorted by createdAt DESC.
+     *
+     * Using [lastCreatedAt] as a cursor: each per-user query starts after that timestamp,
+     * which means we slightly over-fetch but pagination stays simple and correct.
+     *
+     * Returns an empty list when [followingIds] is empty (caller should handle this).
+     */
+    suspend fun getFollowingFeedPage(
+        followingIds: List<String>,
+        limit: Int,
+        lastCreatedAt: Long? = null
+    ): List<Review> {
+        if (followingIds.isEmpty()) return emptyList()
+        require(limit > 0) { "limit must be > 0" }
+
+        return coroutineScope {
+            followingIds.map { uid ->
+                async {
+                    getReviewsByUserPage(
+                        userId = uid,
+                        limit = limit,
+                        lastCreatedAt = lastCreatedAt
+                    )
+                }
+            }.awaitAll()
+        }
+            .flatten()
+            .sortedByDescending { it.createdAt }
+            .take(limit)
     }
 
     /**

@@ -3,7 +3,6 @@ package com.tasteclub.app.ui.feed
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
@@ -46,17 +45,6 @@ class ReviewAdapter(
         private val binding: ItemReviewCardBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        // Star ImageViews array for easy iteration
-        private val starViews: List<ImageView> by lazy {
-            listOf(
-                binding.star1ImageView,
-                binding.star2ImageView,
-                binding.star3ImageView,
-                binding.star4ImageView,
-                binding.star5ImageView
-            )
-        }
-
         fun bind(review: Review) {
             with(binding) {
                 // User info
@@ -64,7 +52,7 @@ class ReviewAdapter(
                 val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
                 dateTextView.text = dateFormat.format(review.createdAt)
 
-                // Load user avatar with Picasso
+                // Load user avatar
                 if (!review.userProfileImageUrl.isNullOrBlank()) {
                     try {
                         Picasso.get()
@@ -75,12 +63,41 @@ class ReviewAdapter(
                             .centerCrop()
                             .into(userAvatarImageView)
                     } catch (e: IllegalArgumentException) {
-                        // In case Picasso rejects the path, fallback to placeholder
                         userAvatarImageView.setImageResource(R.drawable.ic_user_placeholder)
                     }
                 } else {
                     userAvatarImageView.setImageResource(R.drawable.ic_user_placeholder)
                 }
+
+                // Username / avatar click -> navigate to user profile
+                val userClickListener = View.OnClickListener {
+                    if (review.userId.isNotBlank()) {
+                        onUserClick?.invoke(review.userId)
+                    }
+                }
+                userNameTextView.setOnClickListener(userClickListener)
+                userAvatarImageView.setOnClickListener(userClickListener)
+
+                // Food image (ShapeableImageView — hidden when no image)
+                if (!review.imageUrl.isNullOrBlank()) {
+                    restaurantImageView.visibility = View.VISIBLE
+                    try {
+                        Picasso.get()
+                            .load(review.imageUrl)
+                            .placeholder(R.drawable.image_placeholder)
+                            .error(R.drawable.image_placeholder)
+                            .resize(800, 0)
+                            .centerCrop()
+                            .into(restaurantImageView)
+                    } catch (e: IllegalArgumentException) {
+                        restaurantImageView.setImageResource(R.drawable.image_placeholder)
+                    }
+                } else {
+                    restaurantImageView.visibility = View.GONE
+                }
+
+                // Review text
+                reviewTextView.text = review.text
 
                 // Restaurant info
                 restaurantNameTextView.text = review.restaurantName
@@ -93,40 +110,19 @@ class ReviewAdapter(
                     }
                 }
 
-                // Username / avatar click -> navigate to user profile
-                val userClickListener = View.OnClickListener {
-                    if (review.userId.isNotBlank()) {
-                        onUserClick?.invoke(review.userId)
-                    }
+                // 5-star rating
+                val starViews = listOf(
+                    binding.star1ImageView,
+                    binding.star2ImageView,
+                    binding.star3ImageView,
+                    binding.star4ImageView,
+                    binding.star5ImageView
+                )
+                starViews.forEachIndexed { index, star ->
+                    star.setImageResource(
+                        if (index < review.rating) R.drawable.ic_star_filled else R.drawable.ic_star_outline
+                    )
                 }
-                userNameTextView.setOnClickListener(userClickListener)
-                userAvatarImageView.setOnClickListener(userClickListener)
-
-                // Load restaurant image with Picasso
-                if (!review.imageUrl.isNullOrBlank()) {
-                    restaurantImageView.visibility = View.VISIBLE
-                    try {
-                        Picasso.get()
-                            .load(review.imageUrl)
-                            .placeholder(R.drawable.image_placeholder)
-                            .error(R.drawable.image_placeholder)
-                            .resize(800, 0)
-                            .centerCrop()
-                            .into(restaurantImageView)
-                    } catch (e: IllegalArgumentException) {
-                        // If path invalid, show placeholder instead of crashing
-                        restaurantImageView.setImageResource(R.drawable.image_placeholder)
-                    }
-                } else {
-                    // Hide image if not available
-                    restaurantImageView.visibility = View.GONE
-                }
-
-                // Star rating - Set filled/outline stars based on rating
-                setupStarRating(review.rating)
-
-                // Review text
-                reviewTextView.text = review.text
 
                 // Like button
                 val isLiked = review.likedBy.contains(currentUserId)
@@ -136,7 +132,7 @@ class ReviewAdapter(
                 likeCountTextView.text = review.likedBy.size.toString()
                 likeButton.setOnClickListener { onLikeClick(review) }
 
-                // Comment count — filled icon when there are comments, outline when zero
+                // Comment button
                 val hasComments = review.commentCount > 0
                 commentButton.setImageResource(
                     if (hasComments) R.drawable.ic_comment else R.drawable.ic_comment_outline
@@ -144,21 +140,6 @@ class ReviewAdapter(
                 tvCommentCount.text = review.commentCount.toString()
                 commentButton.setOnClickListener { onCommentClick(review) }
                 tvCommentCount.setOnClickListener { onCommentClick(review) }
-            }
-        }
-
-        /**
-         * Setup star rating display based on rating value (1-5)
-         */
-        private fun setupStarRating(rating: Int) {
-            starViews.forEachIndexed { index, imageView ->
-                if (index < rating) {
-                    // Filled star
-                    imageView.setImageResource(R.drawable.ic_star_filled)
-                } else {
-                    // Outline star
-                    imageView.setImageResource(R.drawable.ic_star_outline)
-                }
             }
         }
     }
