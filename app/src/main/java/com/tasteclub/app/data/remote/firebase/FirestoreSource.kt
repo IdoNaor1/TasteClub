@@ -260,7 +260,6 @@ class FirestoreSource(
                 val minimal = Restaurant(
                     id = restaurantId,
                     name = existing.getString("name") ?: "",
-                    addressComponents = null,
                     address = existing.getString("address") ?: "",
                     lat = existing.getDouble("lat") ?: 0.0,
                     lng = existing.getDouble("lng") ?: 0.0,
