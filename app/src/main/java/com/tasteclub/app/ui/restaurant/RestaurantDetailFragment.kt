@@ -58,6 +58,7 @@ class RestaurantDetailFragment : Fragment() {
         val ratingCountTv: TextView = view.findViewById(R.id.rating_count)
         val addressTv: TextView = view.findViewById(R.id.value_address)
         val cuisineTv: TextView = view.findViewById(R.id.value_cuisine)
+        val headerPhotoIv: ShapeableImageView = view.findViewById(R.id.restaurant_header_photo)
         val photosTitle: TextView = view.findViewById(R.id.photos_title)
         val photosScroll: HorizontalScrollView = view.findViewById(R.id.photos_scroll)
         val photosContainer: LinearLayout = view.findViewById(R.id.photos_container)
@@ -78,6 +79,7 @@ class RestaurantDetailFragment : Fragment() {
         if (!restaurantName.isNullOrBlank()) {
             nameTv.text = restaurantName
         }
+        headerPhotoIv.visibility = View.GONE
 
         // Wire review button to navigate to create review with pre-selected restaurant
         val btnReview: MaterialButton = view.findViewById(R.id.btn_review)
@@ -143,6 +145,24 @@ class RestaurantDetailFragment : Fragment() {
             nameTv.text = restaurant.name.ifBlank { restaurantName ?: getString(R.string.restaurant_name_placeholder) }
             addressTv.text = restaurant.address.ifBlank { getString(R.string.value_address_default) }
             cuisineTv.text = restaurant.primaryType.ifBlank { getString(R.string.value_cuisine_default) }
+            if (restaurant.photoUrl.isBlank()) {
+                Picasso.get().cancelRequest(headerPhotoIv)
+                headerPhotoIv.setImageDrawable(null)
+                headerPhotoIv.visibility = View.GONE
+            } else {
+                headerPhotoIv.visibility = View.VISIBLE
+                try {
+                    Picasso.get()
+                        .load(restaurant.photoUrl)
+                        .placeholder(R.drawable.image_placeholder)
+                        .error(R.drawable.image_placeholder)
+                        .fit()
+                        .centerCrop()
+                        .into(headerPhotoIv)
+                } catch (_: IllegalArgumentException) {
+                    headerPhotoIv.setImageResource(R.drawable.image_placeholder)
+                }
+            }
             // Track latest data for review button navigation
             if (restaurant.name.isNotBlank()) restaurantName = restaurant.name
             if (restaurant.address.isNotBlank()) restaurantAddress = restaurant.address
