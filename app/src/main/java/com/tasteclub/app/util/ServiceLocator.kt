@@ -68,7 +68,8 @@ object ServiceLocator {
         return restaurantRepository ?: synchronized(this) {
             restaurantRepository ?: RestaurantRepository(
                 firestoreSource = provideFirestoreSource(),
-                restaurantDao = provideDatabase(context).restaurantDao()
+                restaurantDao = provideDatabase(context).restaurantDao(),
+                storageSource = provideStorageSource()
             ).also { restaurantRepository = it }
         }
     }

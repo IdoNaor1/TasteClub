@@ -2,19 +2,30 @@ package com.tasteclub.app.data.repository
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.map
+import android.graphics.Bitmap
 import com.tasteclub.app.data.local.dao.RestaurantDao
 import com.tasteclub.app.data.local.entity.RestaurantEntity
 import com.tasteclub.app.data.local.entity.toDomain
 import com.tasteclub.app.data.local.entity.toEntity
 import com.tasteclub.app.data.model.Restaurant
+import com.tasteclub.app.data.remote.firebase.FirebaseStorageSource
 import com.tasteclub.app.data.remote.firebase.FirestoreSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class RestaurantRepository(
     private val firestoreSource: FirestoreSource,
-    private val restaurantDao: RestaurantDao
+    private val restaurantDao: RestaurantDao,
+    private val storageSource: FirebaseStorageSource = FirebaseStorageSource()
 ) {
+
+    /**
+     * Upload a photo bitmap for a restaurant to Firebase Storage.
+     * Returns the public download URL.
+     */
+    suspend fun uploadRestaurantPhoto(restaurantId: String, bitmap: Bitmap): String {
+        return storageSource.uploadRestaurantPhoto(restaurantId, bitmap)
+    }
 
     /**
      * Save a restaurant to both Firestore and local Room database.

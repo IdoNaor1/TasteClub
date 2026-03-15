@@ -141,13 +141,24 @@ class ReviewViewModel(
                     }
                     Log.d(TAG, "place fetched: $place")
                     if (place != null) {
+                        // Fetch and upload the restaurant's photo to Firebase Storage
+                        val photoUrl = try {
+                            val bitmap = placesService.fetchFirstPhoto(place)
+                            if (bitmap != null) {
+                                restaurantRepository.uploadRestaurantPhoto(rid, bitmap)
+                            } else ""
+                        } catch (e: Exception) {
+                            Log.w(TAG, "Failed to fetch/upload restaurant photo: ${e.message}")
+                            ""
+                        }
+
                         finalRestaurant = Restaurant(
                             id = restaurantId,
                             name = place.displayName ?: "",
                             address = place.formattedAddress ?: "",
                             lat = place.location?.latitude ?: 0.0,
                             lng = place.location?.longitude ?: 0.0,
-                            photoUrl = "",
+                            photoUrl = photoUrl,
                             primaryType = place.primaryTypeDisplayName ?: ""
                         )
                         Log.d(TAG, "Caching fetched restaurant: $finalRestaurant")
