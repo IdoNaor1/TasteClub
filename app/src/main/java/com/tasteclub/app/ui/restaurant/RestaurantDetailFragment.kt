@@ -1,9 +1,13 @@
 package com.tasteclub.app.ui.restaurant
 
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.HorizontalScrollView
+import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.RatingBar
 import android.widget.TextView
 import androidx.fragment.app.Fragment
@@ -13,14 +17,17 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.imageview.ShapeableImageView
 import com.google.android.material.progressindicator.LinearProgressIndicator
+import com.squareup.picasso.Picasso
 import com.tasteclub.app.R
 import com.tasteclub.app.data.model.Restaurant
 import com.tasteclub.app.data.model.Review
-import com.tasteclub.app.ui.feed.ReviewAdapter
 import com.tasteclub.app.ui.comment.CommentsBottomSheetFragment
+import com.tasteclub.app.ui.feed.ReviewAdapter
 import com.tasteclub.app.util.ServiceLocator
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 /**
  * RestaurantDetailFragment - Restaurant detail screen (Phase 7)
@@ -51,6 +58,9 @@ class RestaurantDetailFragment : Fragment() {
         val ratingCountTv: TextView = view.findViewById(R.id.rating_count)
         val addressTv: TextView = view.findViewById(R.id.value_address)
         val cuisineTv: TextView = view.findViewById(R.id.value_cuisine)
+        val photosTitle: TextView = view.findViewById(R.id.photos_title)
+        val photosScroll: HorizontalScrollView = view.findViewById(R.id.photos_scroll)
+        val photosContainer: LinearLayout = view.findViewById(R.id.photos_container)
 
         // Rating breakdown views
         val ratingCount5: TextView = view.findViewById(R.id.rating_count_5)
@@ -153,7 +163,7 @@ class RestaurantDetailFragment : Fragment() {
             val total = reviews.size
             val avg = reviews.map { it.rating }.average()
 
-            ratingScoreTv.text = String.format("%.1f", avg)
+            ratingScoreTv.text = String.format(Locale.getDefault(), "%.1f", avg)
             ratingStars.rating = avg.toFloat()
             ratingCountTv.text = resources.getQuantityString(
                 R.plurals.rating_count_format,
@@ -182,42 +192,112 @@ class RestaurantDetailFragment : Fragment() {
             progress1.progress = (counts[0] * 100) / maxCount
         }
 
-        // Observe feed from repository and filter locally
-        reviewRepo.observeFeed().observe(viewLifecycleOwner) { reviews ->
-            val filtered = if (restaurantId.isNotBlank()) {
-                reviews.filter { it.restaurantId == restaurantId }
-            } else {
-                reviews
+        fun Int.dp(): Int = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            this.toFloat(),
+            resources.displayMetrics
+        ).toInt()
+
+        fun renderReviewPhotos(reviews: List<Review>) {
+            val photoUrls = reviews.mapNotNull { it.imageUrl.takeIf(String::isNotBlank) }
+
+            photosContainer.removeAllViews()
+
+            if (photoUrls.isEmpty()) {
+                photosTitle.visibility = View.GONE
+                photosScroll.visibility = View.GONE
+                return
             }
 
-            // Preserve any commentCounts already patched in displayedReviews
-            val knownCounts = displayedReviews.associate { it.id to it.commentCount }
-            val merged = filtered.map { r ->
-                val known = knownCounts[r.id] ?: 0
-                if (known > 0) r.copy(commentCount = known) else r
-            }
-            displayedReviews.clear()
-            displayedReviews.addAll(merged)
-            reviewAdapter.submitList(displayedReviews.toList())
-            updateRatingFromReviews(filtered)
+            photosTitle.visibility = View.VISIBLE
+            photosScroll.visibility = View.VISIBLE
+            photosTitle.text = getString(R.string.photos_title_count, photoUrls.size)
 
-            // Fetch real comment counts in background
-            if (merged.isNotEmpty()) {
-                lifecycleScope.launch {
-                    try {
-                        val counts = commentRepo.getCommentCountsBatch(merged.map { it.id })
-                        var changed = false
-                        counts.forEach { (reviewId, count) ->
-                            val idx = displayedReviews.indexOfFirst { it.id == reviewId }
-                            if (idx != -1 && displayedReviews[idx].commentCount != count) {
-                                displayedReviews[idx] = displayedReviews[idx].copy(commentCount = count)
-                                changed = true
-                            }
+            val itemWidth = 160.dp()
+            val itemHeight = 110.dp()
+            val itemSpacing = 12.dp()
+            val cornerRadius = 12.dp().toFloat()
+
+            photoUrls.forEachIndexed { index, photoUrl ->
+                val imageView = ShapeableImageView(requireContext()).apply {
+                    layoutParams = LinearLayout.LayoutParams(itemWidth, itemHeight).apply {
+                        if (index < photoUrls.lastIndex) {
+                            marginEnd = itemSpacing
                         }
-                        if (changed) reviewAdapter.submitList(displayedReviews.toList())
-                    } catch (_: Exception) { }
+                    }
+                    scaleType = ImageView.ScaleType.CENTER_CROP
+                    contentDescription = getString(
+                        R.string.restaurant_photo_content_description,
+                        index + 1
+                    )
+                    shapeAppearanceModel = shapeAppearanceModel
+                        .toBuilder()
+                        .setAllCornerSizes(cornerRadius)
+                        .build()
+                }
+
+                try {
+                    Picasso.get()
+                        .load(photoUrl)
+                        .placeholder(R.drawable.image_placeholder)
+                        .error(R.drawable.image_placeholder)
+                        .resize(800, 0)
+                        .centerCrop()
+                        .into(imageView)
+                } catch (_: IllegalArgumentException) {
+                    imageView.setImageResource(R.drawable.image_placeholder)
+                }
+
+                photosContainer.addView(imageView)
+            }
+        }
+
+        if (restaurantId.isNotBlank()) {
+            // Observe only this restaurant's reviews from Room
+            reviewRepo.observeReviewsByRestaurant(restaurantId).observe(viewLifecycleOwner) { reviews ->
+                // Preserve any commentCounts already patched in displayedReviews
+                val knownCounts = displayedReviews.associate { it.id to it.commentCount }
+                val merged = reviews.map { r ->
+                    val known = knownCounts[r.id] ?: 0
+                    if (known > 0) r.copy(commentCount = known) else r
+                }
+                displayedReviews.clear()
+                displayedReviews.addAll(merged)
+                reviewAdapter.submitList(displayedReviews.toList())
+                updateRatingFromReviews(reviews)
+                renderReviewPhotos(reviews)
+
+                // Fetch real comment counts in background
+                if (merged.isNotEmpty()) {
+                    lifecycleScope.launch {
+                        try {
+                            val counts = commentRepo.getCommentCountsBatch(merged.map { it.id })
+                            var changed = false
+                            counts.forEach { (reviewId, count) ->
+                                val idx = displayedReviews.indexOfFirst { it.id == reviewId }
+                                if (idx != -1 && displayedReviews[idx].commentCount != count) {
+                                    displayedReviews[idx] = displayedReviews[idx].copy(commentCount = count)
+                                    changed = true
+                                }
+                            }
+                            if (changed) reviewAdapter.submitList(displayedReviews.toList())
+                        } catch (_: Exception) { }
+                    }
                 }
             }
+
+            lifecycleScope.launch {
+                try {
+                    reviewRepo.refreshRestaurantReviewsPage(
+                        restaurantId = restaurantId,
+                        limit = 100
+                    )
+                } catch (_: Exception) {
+                    // Keep showing cached Room data if remote refresh fails.
+                }
+            }
+        } else {
+            renderReviewPhotos(emptyList())
         }
 
         // ViewModel for restaurant data

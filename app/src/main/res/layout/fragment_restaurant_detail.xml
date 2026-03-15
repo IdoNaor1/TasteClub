@@ -244,54 +244,7 @@
                 android:id="@+id/photos_container"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <!-- Sample photos: use ShapeableImageView to get rounded corners -->
-                <com.google.android.material.imageview.ShapeableImageView
-                    android:id="@+id/photo_1"
-                    android:layout_width="160dp"
-                    android:layout_height="110dp"
-                    android:layout_marginEnd="12dp"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/ic_launcher_foreground"
-                    app:shapeAppearanceOverlay="?attr/shapeAppearanceCornerSmall" />
-
-                <com.google.android.material.imageview.ShapeableImageView
-                    android:id="@+id/photo_2"
-                    android:layout_width="160dp"
-                    android:layout_height="110dp"
-                    android:layout_marginEnd="12dp"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/ic_launcher_foreground"
-                    app:shapeAppearanceOverlay="?attr/shapeAppearanceCornerSmall" />
-
-                <com.google.android.material.imageview.ShapeableImageView
-                    android:id="@+id/photo_3"
-                    android:layout_width="160dp"
-                    android:layout_height="110dp"
-                    android:layout_marginEnd="12dp"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/ic_launcher_foreground"
-                    app:shapeAppearanceOverlay="?attr/shapeAppearanceCornerSmall" />
-
-                <com.google.android.material.imageview.ShapeableImageView
-                    android:id="@+id/photo_4"
-                    android:layout_width="160dp"
-                    android:layout_height="110dp"
-                    android:layout_marginEnd="12dp"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/ic_launcher_foreground"
-                    app:shapeAppearanceOverlay="?attr/shapeAppearanceCornerSmall" />
-
-                <com.google.android.material.imageview.ShapeableImageView
-                    android:id="@+id/photo_5"
-                    android:layout_width="160dp"
-                    android:layout_height="110dp"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/ic_launcher_foreground"
-                    app:shapeAppearanceOverlay="?attr/shapeAppearanceCornerSmall" />
-
-            </LinearLayout>
+                android:orientation="horizontal" />
 
         </HorizontalScrollView>
 

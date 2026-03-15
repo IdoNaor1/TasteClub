@@ -87,5 +87,12 @@ interface ReviewDao {
 """)
     fun observeByUser(userId: String): LiveData<List<ReviewEntity>>
 
+    @Query("""
+    SELECT * FROM reviews
+    WHERE restaurantId = :restaurantId
+    ORDER BY createdAt DESC
+""")
+    fun observeByRestaurant(restaurantId: String): LiveData<List<ReviewEntity>>
+
 }
 
