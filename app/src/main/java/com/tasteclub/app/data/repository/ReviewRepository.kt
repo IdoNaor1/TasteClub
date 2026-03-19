@@ -12,12 +12,15 @@ import com.tasteclub.app.data.model.Review
 import com.tasteclub.app.data.remote.firebase.FirestoreSource
 import com.tasteclub.app.data.remote.firebase.FirebaseStorageSource
 import com.google.firebase.storage.StorageException
+import com.tasteclub.app.util.NetworkMonitor
+import com.tasteclub.app.util.OfflineException
 
 class ReviewRepository(
     private val firestoreSource: FirestoreSource,
     private val storageSource: FirebaseStorageSource,
     private val reviewDao: ReviewDao,
-    private val restaurantDao: RestaurantDao
+    private val restaurantDao: RestaurantDao,
+    private val networkMonitor: NetworkMonitor
 ) {
     // --------------------
     // Observers (UI reads from Room)
@@ -36,11 +39,15 @@ class ReviewRepository(
      * Used by Discover screen to populate search index.
      */
     suspend fun refreshAllReviews(): List<Review> {
-        val reviews = firestoreSource.getAllReviews()
-        if (reviews.isNotEmpty()) {
-            reviewDao.upsertAll(reviews.map { it.toEntity() })
+        return try {
+            val reviews = firestoreSource.getAllReviews()
+            if (reviews.isNotEmpty()) {
+                reviewDao.upsertAll(reviews.map { it.toEntity() })
+            }
+            reviews
+        } catch (_: Exception) {
+            reviewDao.getAllOnce().map { it.toDomain() }
         }
-        return reviews
     }
 
     // --------------------
@@ -55,11 +62,20 @@ class ReviewRepository(
         limit: Int,
         lastCreatedAt: Long? = null
     ): List<Review> {
-        val page = firestoreSource.getFeedPage(limit = limit, lastCreatedAt = lastCreatedAt)
-        if (page.isNotEmpty()) {
-            reviewDao.upsertAll(page.map { it.toEntity() })
+        return try {
+            val page = firestoreSource.getFeedPage(limit = limit, lastCreatedAt = lastCreatedAt)
+            if (page.isNotEmpty()) {
+                reviewDao.upsertAll(page.map { it.toEntity() })
+            }
+            page
+        } catch (_: Exception) {
+            val cached = if (lastCreatedAt == null) {
+                reviewDao.getLatestOnce(limit)
+            } else {
+                reviewDao.getFeedPageAfterOnce(limit, lastCreatedAt)
+            }
+            cached.map { it.toDomain() }
         }
-        return page
     }
 
     /**
@@ -73,19 +89,28 @@ class ReviewRepository(
         limit: Int,
         lastCreatedAt: Long? = null
     ): List<Review> {
-        val page = firestoreSource.getFollowingFeedPage(
-            followingIds = followingIds,
-            limit = limit,
-            lastCreatedAt = lastCreatedAt
-        )
-        if (lastCreatedAt == null) {
-            // First load — wipe old cache so Room only shows the filtered feed
-            reviewDao.deleteAll()
+        return try {
+            val page = firestoreSource.getFollowingFeedPage(
+                followingIds = followingIds,
+                limit = limit,
+                lastCreatedAt = lastCreatedAt
+            )
+            if (lastCreatedAt == null) {
+                // First load — wipe old cache so Room only shows the filtered feed
+                reviewDao.deleteAll()
+            }
+            if (page.isNotEmpty()) {
+                reviewDao.upsertAll(page.map { it.toEntity() })
+            }
+            page
+        } catch (_: Exception) {
+            val cached = if (lastCreatedAt == null) {
+                reviewDao.getFollowingFeedOnce(followingIds, limit)
+            } else {
+                reviewDao.getFollowingFeedAfterOnce(followingIds, limit, lastCreatedAt)
+            }
+            cached.map { it.toDomain() }
         }
-        if (page.isNotEmpty()) {
-            reviewDao.upsertAll(page.map { it.toEntity() })
-        }
-        return page
     }
 
     suspend fun refreshUserReviewsPage(
@@ -93,15 +118,24 @@ class ReviewRepository(
         limit: Int,
         lastCreatedAt: Long? = null
     ): List<Review> {
-        val page = firestoreSource.getReviewsByUserPage(
-            userId = userId,
-            limit = limit,
-            lastCreatedAt = lastCreatedAt
-        )
-        if (page.isNotEmpty()) {
-            reviewDao.upsertAll(page.map { it.toEntity() })
+        return try {
+            val page = firestoreSource.getReviewsByUserPage(
+                userId = userId,
+                limit = limit,
+                lastCreatedAt = lastCreatedAt
+            )
+            if (page.isNotEmpty()) {
+                reviewDao.upsertAll(page.map { it.toEntity() })
+            }
+            page
+        } catch (_: Exception) {
+            val cached = if (lastCreatedAt == null) {
+                reviewDao.getByUserOnce(userId, limit)
+            } else {
+                reviewDao.getByUserAfterOnce(userId, limit, lastCreatedAt)
+            }
+            cached.map { it.toDomain() }
         }
-        return page
     }
 
     suspend fun refreshRestaurantReviewsPage(
@@ -109,15 +143,24 @@ class ReviewRepository(
         limit: Int,
         lastCreatedAt: Long? = null
     ): List<Review> {
-        val page = firestoreSource.getReviewsByRestaurantPage(
-            restaurantId = restaurantId,
-            limit = limit,
-            lastCreatedAt = lastCreatedAt
-        )
-        if (page.isNotEmpty()) {
-            reviewDao.upsertAll(page.map { it.toEntity() })
+        return try {
+            val page = firestoreSource.getReviewsByRestaurantPage(
+                restaurantId = restaurantId,
+                limit = limit,
+                lastCreatedAt = lastCreatedAt
+            )
+            if (page.isNotEmpty()) {
+                reviewDao.upsertAll(page.map { it.toEntity() })
+            }
+            page
+        } catch (_: Exception) {
+            val cached = if (lastCreatedAt == null) {
+                reviewDao.getByRestaurantOnce(restaurantId, limit)
+            } else {
+                reviewDao.getByRestaurantAfterOnce(restaurantId, limit, lastCreatedAt)
+            }
+            cached.map { it.toDomain() }
         }
-        return page
     }
 
     // --------------------
@@ -137,6 +180,8 @@ class ReviewRepository(
         imageBitmap: Bitmap? = null,
         removeImage: Boolean = false
     ): Review {
+        if (!networkMonitor.isOnline()) throw OfflineException()
+
         // Step 1: ensure review has id + timestamps
         var saved = firestoreSource.upsertReview(review)
 
@@ -175,12 +220,15 @@ class ReviewRepository(
     // --------------------
 
     suspend fun toggleLike(reviewId: String, userId: String): Review {
+        if (!networkMonitor.isOnline()) throw OfflineException()
         val updated = firestoreSource.toggleLike(reviewId, userId)
         reviewDao.upsert(updated.toEntity())
         return updated
     }
 
     suspend fun deleteReview(reviewId: String) {
+        if (!networkMonitor.isOnline()) throw OfflineException()
+
         // Fetch the review before deletion so we can determine restaurantId and imageUrl
         val reviewBeforeDelete: Review? = try {
             firestoreSource.getReview(reviewId)

@@ -5,13 +5,16 @@ import com.tasteclub.app.data.local.entity.toDomain
 import com.tasteclub.app.data.local.entity.toEntity
 import com.tasteclub.app.data.model.Comment
 import com.tasteclub.app.data.remote.firebase.FirestoreSource
+import com.tasteclub.app.util.NetworkMonitor
+import com.tasteclub.app.util.OfflineException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 
 class CommentRepository(
     private val firestoreSource: FirestoreSource,
-    private val commentDao: CommentDao
+    private val commentDao: CommentDao,
+    private val networkMonitor: NetworkMonitor
 ) {
 
     /**
@@ -20,6 +23,9 @@ class CommentRepository(
      * Falls back to Room on network error.
      */
     suspend fun getComments(reviewId: String): List<Comment> {
+        if (!networkMonitor.isOnline()) {
+            return commentDao.getCommentsForReviewOnce(reviewId).map { it.toDomain() }
+        }
         return try {
             val remote = firestoreSource.getComments(reviewId)
             commentDao.insertAll(remote.map { it.toEntity() })
@@ -40,6 +46,10 @@ class CommentRepository(
         coroutineScope {
             reviewIds.map { reviewId ->
                 async {
+                    if (!networkMonitor.isOnline()) {
+                        return@async reviewId to commentDao.getCommentCount(reviewId)
+                    }
+
                     val count = try {
                         val comments = firestoreSource.getComments(reviewId)
                         commentDao.insertAll(comments.map { it.toEntity() })
@@ -53,12 +63,14 @@ class CommentRepository(
         }
 
     suspend fun addComment(comment: Comment): Comment {
+        if (!networkMonitor.isOnline()) throw OfflineException()
         val saved = firestoreSource.addComment(comment)
         commentDao.insert(saved.toEntity())
         return saved
     }
 
     suspend fun deleteComment(reviewId: String, commentId: String) {
+        if (!networkMonitor.isOnline()) throw OfflineException()
         firestoreSource.deleteComment(reviewId, commentId)
         commentDao.deleteById(commentId)
     }

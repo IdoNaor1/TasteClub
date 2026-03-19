@@ -6,7 +6,9 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
@@ -16,7 +18,9 @@ import com.google.android.libraries.places.api.Places
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.squareup.picasso.Picasso
 import com.tasteclub.app.databinding.ActivityMainBinding
+import com.tasteclub.app.util.NetworkStatus
 import com.tasteclub.app.util.ServiceLocator
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 /**
@@ -68,6 +72,9 @@ class MainActivity : AppCompatActivity() {
 
         // Observe auth state for navigation
         observeAuthState()
+
+        // Show a global offline indicator and gate create actions.
+        observeNetworkStatus()
 
         //initPlaces()
     }
@@ -217,6 +224,21 @@ class MainActivity : AppCompatActivity() {
                     }
                     // Do not navigate on login; let the login/register fragments handle it
                 }
+            }
+        }
+    }
+
+    private fun observeNetworkStatus() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                ServiceLocator.provideNetworkMonitor(this@MainActivity)
+                    .status
+                    .collectLatest { status ->
+                        val isOffline = status != NetworkStatus.Available
+                        binding.offlineBanner.visibility = if (isOffline) View.VISIBLE else View.GONE
+                        binding.toolbarAddReview.isEnabled = !isOffline
+                        binding.toolbarAddReview.alpha = if (isOffline) 0.5f else 1f
+                    }
             }
         }
     }

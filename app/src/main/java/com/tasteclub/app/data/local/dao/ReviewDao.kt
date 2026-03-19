@@ -82,6 +82,48 @@ interface ReviewDao {
 
     @Query("""
     SELECT * FROM reviews
+    ORDER BY createdAt DESC
+""")
+    suspend fun getAllOnce(): List<ReviewEntity>
+
+    @Query("""
+    SELECT * FROM reviews
+    ORDER BY createdAt DESC
+    LIMIT :limit
+""")
+    suspend fun getLatestOnce(limit: Int): List<ReviewEntity>
+
+    @Query("""
+    SELECT * FROM reviews
+    WHERE userId IN (:userIds)
+    ORDER BY createdAt DESC
+    LIMIT :limit
+""")
+    suspend fun getFollowingFeedOnce(userIds: List<String>, limit: Int): List<ReviewEntity>
+
+    @Query("""
+    SELECT * FROM reviews
+    WHERE createdAt < :lastCreatedAt
+    ORDER BY createdAt DESC
+    LIMIT :limit
+""")
+    suspend fun getFeedPageAfterOnce(limit: Int, lastCreatedAt: Long): List<ReviewEntity>
+
+    @Query("""
+    SELECT * FROM reviews
+    WHERE userId IN (:userIds)
+    AND createdAt < :lastCreatedAt
+    ORDER BY createdAt DESC
+    LIMIT :limit
+""")
+    suspend fun getFollowingFeedAfterOnce(
+        userIds: List<String>,
+        limit: Int,
+        lastCreatedAt: Long
+    ): List<ReviewEntity>
+
+    @Query("""
+    SELECT * FROM reviews
     WHERE userId = :userId
     ORDER BY createdAt DESC
 """)
@@ -89,10 +131,44 @@ interface ReviewDao {
 
     @Query("""
     SELECT * FROM reviews
+    WHERE userId = :userId
+    ORDER BY createdAt DESC
+    LIMIT :limit
+""")
+    suspend fun getByUserOnce(userId: String, limit: Int): List<ReviewEntity>
+
+    @Query("""
+    SELECT * FROM reviews
+    WHERE userId = :userId
+    AND createdAt < :lastCreatedAt
+    ORDER BY createdAt DESC
+    LIMIT :limit
+""")
+    suspend fun getByUserAfterOnce(userId: String, limit: Int, lastCreatedAt: Long): List<ReviewEntity>
+
+    @Query("""
+    SELECT * FROM reviews
     WHERE restaurantId = :restaurantId
     ORDER BY createdAt DESC
 """)
     fun observeByRestaurant(restaurantId: String): LiveData<List<ReviewEntity>>
+
+    @Query("""
+    SELECT * FROM reviews
+    WHERE restaurantId = :restaurantId
+    ORDER BY createdAt DESC
+    LIMIT :limit
+""")
+    suspend fun getByRestaurantOnce(restaurantId: String, limit: Int): List<ReviewEntity>
+
+    @Query("""
+    SELECT * FROM reviews
+    WHERE restaurantId = :restaurantId
+    AND createdAt < :lastCreatedAt
+    ORDER BY createdAt DESC
+    LIMIT :limit
+""")
+    suspend fun getByRestaurantAfterOnce(restaurantId: String, limit: Int, lastCreatedAt: Long): List<ReviewEntity>
 
 }
 

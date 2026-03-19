@@ -10,13 +10,16 @@ import com.tasteclub.app.data.local.entity.toEntity
 import com.tasteclub.app.data.model.Restaurant
 import com.tasteclub.app.data.remote.firebase.FirebaseStorageSource
 import com.tasteclub.app.data.remote.firebase.FirestoreSource
+import com.tasteclub.app.util.NetworkMonitor
+import com.tasteclub.app.util.OfflineException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class RestaurantRepository(
     private val firestoreSource: FirestoreSource,
     private val restaurantDao: RestaurantDao,
-    private val storageSource: FirebaseStorageSource = FirebaseStorageSource()
+    private val storageSource: FirebaseStorageSource = FirebaseStorageSource(),
+    private val networkMonitor: NetworkMonitor
 ) {
 
     /**
@@ -24,6 +27,7 @@ class RestaurantRepository(
      * Returns the public download URL.
      */
     suspend fun uploadRestaurantPhoto(restaurantId: String, bitmap: Bitmap): String {
+        if (!networkMonitor.isOnline()) throw OfflineException()
         return storageSource.uploadRestaurantPhoto(restaurantId, bitmap)
     }
 
@@ -31,6 +35,8 @@ class RestaurantRepository(
      * Save a restaurant to both Firestore and local Room database.
      */
     suspend fun upsertRestaurant(restaurant: Restaurant): Restaurant {
+        if (!networkMonitor.isOnline()) throw OfflineException()
+
         // First, save to Firestore
         firestoreSource.upsertRestaurant(restaurant)
 
@@ -85,6 +91,8 @@ class RestaurantRepository(
             )
         }
 
+        if (!networkMonitor.isOnline()) return null
+
         // Not found locally -> fetch from Firestore
         val remote = firestoreSource.getRestaurant(id) ?: return null
 
@@ -121,17 +129,22 @@ class RestaurantRepository(
      * Used by Discover screen to populate search index.
      */
     suspend fun refreshAllRestaurants(): List<Restaurant> {
-        val restaurants = firestoreSource.getAllRestaurants()
-        if (restaurants.isNotEmpty()) {
-            restaurantDao.upsertAll(restaurants.map { it.toEntity() })
+        return try {
+            val restaurants = firestoreSource.getAllRestaurants()
+            if (restaurants.isNotEmpty()) {
+                restaurantDao.upsertAll(restaurants.map { it.toEntity() })
+            }
+            restaurants
+        } catch (_: Exception) {
+            restaurantDao.getAllOnce().map { it.toDomain() }
         }
-        return restaurants
     }
 
     /**
      * Delete a restaurant from both Firestore and Room.
      */
     suspend fun deleteRestaurant(id: String) {
+        if (!networkMonitor.isOnline()) throw OfflineException()
         firestoreSource.deleteRestaurant(id)
         restaurantDao.deleteById(id)
     }

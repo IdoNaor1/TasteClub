@@ -20,6 +20,9 @@ interface RestaurantDao {
     @Query("SELECT * FROM restaurants ORDER BY lastUpdated DESC")
     fun getAll(): Flow<List<RestaurantEntity>>
 
+    @Query("SELECT * FROM restaurants ORDER BY lastUpdated DESC")
+    suspend fun getAllOnce(): List<RestaurantEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(restaurant: RestaurantEntity)
 
