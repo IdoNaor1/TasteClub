@@ -48,6 +48,18 @@ class FirebaseStorageSource(
         rootRef.child("review_images/$reviewId.jpg").delete().await()
     }
 
+    /**
+     * Upload restaurant photo to: restaurant_photos/{restaurantId}.jpg
+     * Returns: download URL
+     */
+    suspend fun uploadRestaurantPhoto(restaurantId: String, bitmap: Bitmap): String {
+        require(restaurantId.isNotBlank()) { "restaurantId must not be blank" }
+        val bytes = bitmap.toJpegBytes(85)
+        val ref = rootRef.child("restaurant_photos/$restaurantId.jpg")
+        ref.putBytes(bytes).await()
+        return ref.downloadUrl.await().toString()
+    }
+
     // --------------------
     // Helpers
     // --------------------

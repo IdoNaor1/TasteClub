@@ -166,7 +166,10 @@
     <string name="label_cuisine">Cuisine</string>
     <string name="value_cuisine_default">Fast Food</string>
     <string name="btn_review">Review</string>
-    <string name="photos_title">Photos (5)</string>
+    <string name="photos_title">Photos</string>
+    <string name="photos_title_count">Photos (%1$d)</string>
+    <string name="restaurant_photo_content_description">Review photo %1$d</string>
+    <string name="restaurant_header_photo_content_description">Restaurant photo</string>
     <string name="rating_breakdown_title">Rating Breakdown</string>
 
     <string name="rating_label_5">5</string>

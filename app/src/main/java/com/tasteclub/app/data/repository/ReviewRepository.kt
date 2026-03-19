@@ -28,6 +28,9 @@ class ReviewRepository(
     fun observeReviewsByUser(userId: String): LiveData<List<Review>> =
         reviewDao.observeByUser(userId).map { list -> list.map { it.toDomain() } }
 
+    fun observeReviewsByRestaurant(restaurantId: String): LiveData<List<Review>> =
+        reviewDao.observeByRestaurant(restaurantId).map { list -> list.map { it.toDomain() } }
+
     /**
      * Fetch all reviews from Firestore (no pagination) and cache in Room.
      * Used by Discover screen to populate search index.
@@ -92,6 +95,22 @@ class ReviewRepository(
     ): List<Review> {
         val page = firestoreSource.getReviewsByUserPage(
             userId = userId,
+            limit = limit,
+            lastCreatedAt = lastCreatedAt
+        )
+        if (page.isNotEmpty()) {
+            reviewDao.upsertAll(page.map { it.toEntity() })
+        }
+        return page
+    }
+
+    suspend fun refreshRestaurantReviewsPage(
+        restaurantId: String,
+        limit: Int,
+        lastCreatedAt: Long? = null
+    ): List<Review> {
+        val page = firestoreSource.getReviewsByRestaurantPage(
+            restaurantId = restaurantId,
             limit = limit,
             lastCreatedAt = lastCreatedAt
         )

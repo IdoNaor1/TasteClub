@@ -2,6 +2,8 @@ package com.tasteclub.app.data.remote.places
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.util.Log
 import com.google.android.gms.common.api.Status
 import com.google.android.gms.maps.model.LatLng
@@ -10,10 +12,14 @@ import com.google.android.libraries.places.api.model.AutocompleteSessionToken
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.model.RectangularBounds
 import com.google.android.libraries.places.api.net.FetchPlaceRequest
+import com.google.android.libraries.places.api.net.FetchResolvedPhotoUriRequest
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.android.libraries.places.widget.PlaceAutocomplete
 import com.tasteclub.app.BuildConfig
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
+import java.net.URL
 
 
 class PlacesService(context: Context) {
@@ -93,6 +99,29 @@ class PlacesService(context: Context) {
             response.place
         } catch (e: Exception) {
             Log.e("PlacesService", "Error fetching place details: ${e.message}")
+            null
+        }
+    }
+
+    /**
+     * Fetches the first available photo for a Place as a Bitmap.
+     * Returns null if no photo metadata exists or the request fails.
+     */
+    suspend fun fetchFirstPhoto(place: Place, maxSize: Int = 800): Bitmap? {
+        val metadata = place.photoMetadatas?.firstOrNull() ?: return null
+        return try {
+            val request = FetchResolvedPhotoUriRequest.builder(metadata)
+                .setMaxWidth(maxSize)
+                .setMaxHeight(maxSize)
+                .build()
+            val uri = placesClient.fetchResolvedPhotoUri(request).await().uri ?: return null
+            withContext(Dispatchers.IO) {
+                URL(uri.toString()).openStream().use { input ->
+                    BitmapFactory.decodeStream(input)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("PlacesService", "Error fetching place photo: ${e.message}")
             null
         }
     }
