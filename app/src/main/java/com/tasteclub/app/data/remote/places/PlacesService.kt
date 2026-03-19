@@ -79,7 +79,6 @@ class PlacesService(context: Context) {
             Place.Field.ID,
             Place.Field.PHOTO_METADATAS,
             Place.Field.DISPLAY_NAME,
-            Place.Field.ADDRESS_COMPONENTS,
             Place.Field.FORMATTED_ADDRESS,
             Place.Field.LOCATION,
             Place.Field.PRIMARY_TYPE_DISPLAY_NAME,

@@ -144,7 +144,6 @@ class ReviewViewModel(
                         finalRestaurant = Restaurant(
                             id = restaurantId,
                             name = place.displayName ?: "",
-                            addressComponents = place.addressComponents,
                             address = place.formattedAddress ?: "",
                             lat = place.location?.latitude ?: 0.0,
                             lng = place.location?.longitude ?: 0.0,

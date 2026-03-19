@@ -27,7 +27,6 @@ class RestaurantRepository(
         val entity = RestaurantEntity(
             id = restaurant.id,
             name = restaurant.name,
-            addressComponents = restaurant.addressComponents,
             address = restaurant.address,
             lat = restaurant.lat,
             lng = restaurant.lng,
@@ -63,7 +62,6 @@ class RestaurantRepository(
             return Restaurant(
                 id = entity.id,
                 name = entity.name,
-                addressComponents = entity.addressComponents,
                 address = entity.address,
                 lat = entity.lat,
                 lng = entity.lng,
@@ -83,7 +81,6 @@ class RestaurantRepository(
         val cached = RestaurantEntity(
             id = remote.id,
             name = remote.name,
-            addressComponents = remote.addressComponents,
             address = remote.address,
             lat = remote.lat,
             lng = remote.lng,
