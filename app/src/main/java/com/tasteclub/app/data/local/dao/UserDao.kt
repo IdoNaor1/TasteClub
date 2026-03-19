@@ -5,7 +5,6 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Delete
 import com.tasteclub.app.data.local.entity.UserEntity
 
 @Dao
@@ -20,6 +19,9 @@ interface UserDao {
 
     @Query("SELECT * FROM users")
     fun getAll(): LiveData<List<UserEntity>>
+
+    @Query("SELECT * FROM users")
+    suspend fun getAllOnce(): List<UserEntity>
 
     // ---- Write ----
     @Insert(onConflict = OnConflictStrategy.REPLACE)

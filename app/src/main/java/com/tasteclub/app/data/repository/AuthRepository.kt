@@ -8,6 +8,8 @@ import com.tasteclub.app.data.local.entity.toEntity
 import com.tasteclub.app.data.model.User
 import com.tasteclub.app.data.remote.firebase.FirebaseAuthSource
 import com.tasteclub.app.data.remote.firebase.FirestoreSource
+import com.tasteclub.app.util.NetworkMonitor
+import com.tasteclub.app.util.OfflineException
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -16,7 +18,8 @@ import kotlinx.coroutines.flow.callbackFlow
 class AuthRepository(
     private val authSource: FirebaseAuthSource,
     private val firestoreSource: FirestoreSource,
-    private val userDao: UserDao
+    private val userDao: UserDao,
+    private val networkMonitor: NetworkMonitor
 ) {
 
     fun currentUserId(): String? = authSource.currentUserId()
@@ -63,11 +66,15 @@ class AuthRepository(
      * Used by Discover screen to populate search index.
      */
     suspend fun refreshAllUsers(): List<User> {
-        val users = firestoreSource.getAllUsers()
-        if (users.isNotEmpty()) {
-            userDao.upsertAll(users.map { it.toEntity() })
+        return try {
+            val users = firestoreSource.getAllUsers()
+            if (users.isNotEmpty()) {
+                userDao.upsertAll(users.map { it.toEntity() })
+            }
+            users
+        } catch (_: Exception) {
+            userDao.getAllOnce().map { it.toDomain() }
         }
-        return users
     }
 
     /**
@@ -78,6 +85,7 @@ class AuthRepository(
      * 4) Cache to Room
      */
     suspend fun register(email: String, password: String, userName: String): Result<User> {
+        if (!networkMonitor.isOnline()) return Result.failure(OfflineException())
         android.util.Log.d("AuthRepository", "Register function called")
         return try {
             android.util.Log.d("AuthRepository", "Calling authSource.register")
@@ -115,6 +123,7 @@ class AuthRepository(
      * 2) Pull profile from Firestore (if exists) and cache to Room
      */
     suspend fun login(email: String, password: String): User? {
+        if (!networkMonitor.isOnline()) throw OfflineException()
         val uid = authSource.login(email, password)
         return refreshUserFromRemote(uid)
     }
@@ -124,6 +133,9 @@ class AuthRepository(
      * Returns the fetched user (or null if no user doc exists yet).
      */
     suspend fun refreshUserFromRemote(uid: String): User? {
+        if (!networkMonitor.isOnline()) {
+            return userDao.getByIdOnce(uid)?.toDomain()
+        }
         val remoteUser = firestoreSource.getUser(uid)
         if (remoteUser != null) {
             userDao.upsert(remoteUser.toEntity())
@@ -141,6 +153,7 @@ class AuthRepository(
         bio: String? = null,
         profileImageUrl: String? = null
     ) {
+        if (!networkMonitor.isOnline()) throw OfflineException()
         firestoreSource.updateUserProfile(
             uid = uid,
             userName = userName,
@@ -164,6 +177,7 @@ class AuthRepository(
      * On failure, rolls back the optimistic update so counts stay consistent.
      */
     suspend fun followUser(targetUid: String) {
+        if (!networkMonitor.isOnline()) throw OfflineException()
         val currentUid = currentUserId() ?: throw IllegalStateException("Not logged in")
 
         // --- Snapshot state before optimistic update (for rollback) ---
@@ -210,6 +224,7 @@ class AuthRepository(
      * On failure, rolls back the optimistic update so counts stay consistent.
      */
     suspend fun unfollowUser(targetUid: String) {
+        if (!networkMonitor.isOnline()) throw OfflineException()
         val currentUid = currentUserId() ?: throw IllegalStateException("Not logged in")
 
         // --- Snapshot state before optimistic update (for rollback) ---
@@ -250,6 +265,7 @@ class AuthRepository(
     }
 
     suspend fun sendPasswordReset(email: String) {
+        if (!networkMonitor.isOnline()) throw OfflineException()
         authSource.sendPasswordReset(email)
     }
 

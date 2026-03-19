@@ -37,6 +37,9 @@ object ServiceLocator {
     @Volatile
     private var commentRepository: CommentRepository? = null
 
+    @Volatile
+    private var networkMonitor: NetworkMonitor? = null
+
     private var placesService: PlacesService? = null
 
     // --------------------
@@ -48,7 +51,8 @@ object ServiceLocator {
             authRepository ?: AuthRepository(
                 authSource = provideAuthSource(),
                 firestoreSource = provideFirestoreSource(),
-                userDao = provideDatabase(context).userDao()
+                userDao = provideDatabase(context).userDao(),
+                networkMonitor = provideNetworkMonitor(context)
             ).also { authRepository = it }
         }
     }
@@ -59,7 +63,8 @@ object ServiceLocator {
                 firestoreSource = provideFirestoreSource(),
                 storageSource = provideStorageSource(),
                 reviewDao = provideDatabase(context).reviewDao(),
-                restaurantDao = provideDatabase(context).restaurantDao()
+                restaurantDao = provideDatabase(context).restaurantDao(),
+                networkMonitor = provideNetworkMonitor(context)
             ).also { reviewRepository = it }
         }
     }
@@ -69,7 +74,8 @@ object ServiceLocator {
             restaurantRepository ?: RestaurantRepository(
                 firestoreSource = provideFirestoreSource(),
                 restaurantDao = provideDatabase(context).restaurantDao(),
-                storageSource = provideStorageSource()
+                storageSource = provideStorageSource(),
+                networkMonitor = provideNetworkMonitor(context)
             ).also { restaurantRepository = it }
         }
     }
@@ -78,8 +84,15 @@ object ServiceLocator {
         return commentRepository ?: synchronized(this) {
             commentRepository ?: CommentRepository(
                 firestoreSource = provideFirestoreSource(),
-                commentDao = provideDatabase(context).commentDao()
+                commentDao = provideDatabase(context).commentDao(),
+                networkMonitor = provideNetworkMonitor(context)
             ).also { commentRepository = it }
+        }
+    }
+
+    fun provideNetworkMonitor(context: Context): NetworkMonitor {
+        return networkMonitor ?: synchronized(this) {
+            networkMonitor ?: NetworkMonitor(context.applicationContext).also { networkMonitor = it }
         }
     }
 
@@ -130,6 +143,8 @@ object ServiceLocator {
         authSource = null
         firestoreSource = null
         storageSource = null
+        networkMonitor?.stop()
+        networkMonitor = null
         database = null
     }
 }
