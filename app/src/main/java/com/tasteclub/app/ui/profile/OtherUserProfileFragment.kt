@@ -95,8 +95,11 @@ class OtherUserProfileFragment : Fragment() {
                 }
             },
             onUserClick = { userId ->
-                // Already on a user profile – navigate only if different user
-                if (userId != targetUserId) {
+                // Check if clicking on current user
+                if (userId == viewModel.currentUserId) {
+                    findNavController().navigate(R.id.profileFragment)
+                } else if (userId != targetUserId) {
+                    // Already on a user profile – navigate only if different user
                     val bundle = Bundle().apply {
                         putString("userId", userId)
                     }
@@ -105,6 +108,7 @@ class OtherUserProfileFragment : Fragment() {
                         bundle
                     )
                 }
+                // If userId == targetUserId, do nothing (already on this profile)
             },
             onCommentClick = { review ->
                 val sheet = CommentsBottomSheetFragment.newInstance(review.id)

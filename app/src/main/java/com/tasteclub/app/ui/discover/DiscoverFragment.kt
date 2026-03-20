@@ -78,10 +78,17 @@ class DiscoverFragment : Fragment() {
                 findNavController().navigate(R.id.action_discover_to_restaurant_detail, bundle)
             },
             onUserClick = { userId ->
-                val bundle = Bundle().apply {
-                    putString("userId", userId)
+                // Check if the clicked user is the current user
+                if (userId == viewModel.currentUserId) {
+                    // Navigate to current user's profile
+                    findNavController().navigate(R.id.profileFragment)
+                } else {
+                    // Navigate to other user's profile
+                    val bundle = Bundle().apply {
+                        putString("userId", userId)
+                    }
+                    findNavController().navigate(R.id.action_discover_to_other_profile, bundle)
                 }
-                findNavController().navigate(R.id.action_discover_to_other_profile, bundle)
             },
             onLikeClick = { review ->
                 viewModel.toggleLike(review.id)
