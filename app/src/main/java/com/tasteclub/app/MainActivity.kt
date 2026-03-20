@@ -3,7 +3,10 @@ package com.tasteclub.app
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.ColorUtils
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Lifecycle
@@ -67,6 +70,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        applySystemBarColors()
         super.onCreate(savedInstanceState)
 
         // Initialize view binding
@@ -96,6 +100,24 @@ class MainActivity : AppCompatActivity() {
         observeNetworkStatus()
 
         //initPlaces()
+    }
+
+    private fun applySystemBarColors() {
+        val typedArray = theme.obtainStyledAttributes(intArrayOf(com.google.android.material.R.attr.colorSurface))
+        val barColor = typedArray.getColor(0, 0)
+        typedArray.recycle()
+
+        val useDarkIcons = ColorUtils.calculateLuminance(barColor) > 0.5
+        val barStyle = if (useDarkIcons) {
+            SystemBarStyle.light(barColor, barColor)
+        } else {
+            SystemBarStyle.dark(barColor)
+        }
+
+        enableEdgeToEdge(
+            statusBarStyle = barStyle,
+            navigationBarStyle = barStyle
+        )
     }
 
     /**
