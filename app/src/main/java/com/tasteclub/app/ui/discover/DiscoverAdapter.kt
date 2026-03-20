@@ -15,6 +15,11 @@ import com.tasteclub.app.data.model.User
 import com.tasteclub.app.databinding.ItemDiscoverRestaurantBinding
 import com.tasteclub.app.databinding.ItemDiscoverReviewBinding
 import com.tasteclub.app.databinding.ItemDiscoverUserBinding
+import com.tasteclub.app.util.ServiceLocator
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -132,6 +137,11 @@ class DiscoverAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(user: User) {
+            // Force invalidation if needed for self (rare in discover but safe)
+            if (user.uid == currentUserId) {
+                Picasso.get().invalidate(user.profileImageUrl)
+            }
+
             binding.userName.text = user.userName
 
             if (user.bio.isNotBlank()) {
@@ -154,8 +164,31 @@ class DiscoverAdapter(
         private val binding: ItemDiscoverReviewBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
+        private var currentJob: kotlinx.coroutines.Job? = null
+
         fun bind(review: Review) {
-            binding.reviewUserName.text = review.userName
+            // Cancel any pending job
+            currentJob?.cancel()
+
+            // --- USER RESOLUTION ---
+            binding.reviewUserName.text = "Loading..."
+            binding.reviewUserAvatar.setImageResource(R.drawable.ic_user_placeholder)
+
+            val context = binding.root.context
+            val authRepo = ServiceLocator.provideAuthRepository(context)
+
+            currentJob = CoroutineScope(Dispatchers.Main).launch {
+                val userInfo = withContext(Dispatchers.IO) {
+                    authRepo.resolveUserDisplayInfo(review.userId)
+                }
+
+                if (userInfo != null) {
+                    binding.reviewUserName.text = userInfo.first
+                    loadImage(userInfo.second, binding.reviewUserAvatar, R.drawable.ic_user_placeholder)
+                } else {
+                    binding.reviewUserName.text = "Deleted User"
+                }
+            }
 
             // Date
             val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
@@ -200,9 +233,6 @@ class DiscoverAdapter(
                     onRestaurantClick(review.restaurantId, review.restaurantName)
                 }
             }
-
-            // User avatar
-            loadImage(review.userProfileImageUrl, binding.reviewUserAvatar, R.drawable.ic_user_placeholder)
 
             // Username / avatar click -> navigate to user profile
             val userClickListener = View.OnClickListener {

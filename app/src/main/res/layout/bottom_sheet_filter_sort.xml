@@ -190,6 +190,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:text="@string/apply_filters"
+            android:textColor="@android:color/white"
             android:backgroundTint="@color/primary_brown" />
 
     </LinearLayout>

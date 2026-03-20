@@ -7,6 +7,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
@@ -46,6 +48,23 @@ class MainActivity : AppCompatActivity() {
 
     // Flag to skip initial auth state emission
     private var skipInitialAuthState = true
+
+    // Tracks the LiveData currently observed for the toolbar avatar, so we can
+    // detach it before attaching a new one when a different user logs in.
+    private var toolbarUserLiveData: LiveData<com.tasteclub.app.data.model.User?>? = null
+    private val toolbarUserObserver = Observer<com.tasteclub.app.data.model.User?> { user ->
+        if (user != null && user.profileImageUrl.isNotBlank()) {
+            val sep = if (user.profileImageUrl.contains('?')) "&" else "?"
+            val url = "${user.profileImageUrl}${sep}t=${user.lastUpdated}"
+            Picasso.get()
+                .load(url)
+                .placeholder(R.drawable.ic_profile)
+                .error(R.drawable.ic_profile)
+                .into(binding.toolbarProfileImage)
+        } else {
+            binding.toolbarProfileImage.setImageResource(R.drawable.ic_profile)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -133,22 +152,6 @@ class MainActivity : AppCompatActivity() {
             navController.navigate(R.id.action_global_create_review)
         }
 
-        // Observe current user to load profile image into toolbar
-        val authRepo = ServiceLocator.provideAuthRepository(this)
-        val userId = authRepo.currentUserId()
-        if (userId != null) {
-            authRepo.observeUser(userId).observe(this) { user ->
-                if (user != null && user.profileImageUrl.isNotBlank()) {
-                    Picasso.get()
-                        .load(user.profileImageUrl)
-                        .placeholder(R.drawable.ic_profile)
-                        .error(R.drawable.ic_profile)
-                        .into(binding.toolbarProfileImage)
-                } else {
-                    binding.toolbarProfileImage.setImageResource(R.drawable.ic_profile)
-                }
-            }
-        }
 
         // Detail toolbar: back button click -> navigate up
         binding.toolbarBackButton.setOnClickListener {
@@ -211,21 +214,38 @@ class MainActivity : AppCompatActivity() {
      * Observe authentication state and navigate accordingly
      */
     private fun observeAuthState() {
+        val repo = ServiceLocator.provideAuthRepository(this@MainActivity)
+
+        // Attach observer for whoever is already logged in at startup
+        repo.currentUserId()?.let { observeToolbarUser(it) }
+
         lifecycleScope.launch {
-            val repo = ServiceLocator.provideAuthRepository(this@MainActivity)
             repo.observeAuthState().collect { isLoggedIn ->
                 if (skipInitialAuthState) {
-                    // Skip the initial emission
                     skipInitialAuthState = false
                 } else {
                     if (!isLoggedIn) {
-                        // Navigate to login using global action
+                        // Detach old observer and clear avatar
+                        toolbarUserLiveData?.removeObserver(toolbarUserObserver)
+                        toolbarUserLiveData = null
+                        binding.toolbarProfileImage.setImageResource(R.drawable.ic_profile)
                         navController.navigate(R.id.action_global_login)
+                    } else {
+                        // New user just logged in — attach fresh observer
+                        repo.currentUserId()?.let { observeToolbarUser(it) }
                     }
-                    // Do not navigate on login; let the login/register fragments handle it
                 }
             }
         }
+    }
+
+    /** Detach any existing toolbar-user observer and attach one for [userId]. */
+    private fun observeToolbarUser(userId: String) {
+        val repo = ServiceLocator.provideAuthRepository(this)
+        toolbarUserLiveData?.removeObserver(toolbarUserObserver)
+        val liveData = repo.observeUser(userId)
+        toolbarUserLiveData = liveData
+        liveData.observe(this, toolbarUserObserver)
     }
 
     private fun observeNetworkStatus() {
