@@ -133,10 +133,13 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
                     userName.text = it.userName
                     userBio.text = it.bio.ifEmpty { "No bio yet" }
 
-                    // Load profile image
+                    // Load profile image — append lastUpdated to bust Picasso's disk cache.
+                    // Firebase Storage URLs already contain '?token=…' so use '&' as separator.
                     if (it.profileImageUrl.isNotEmpty()) {
+                        val sep = if (it.profileImageUrl.contains('?')) "&" else "?"
+                        val url = "${it.profileImageUrl}${sep}t=${it.lastUpdated}"
                         Picasso.get()
-                            .load(it.profileImageUrl)
+                            .load(url)
                             .placeholder(R.drawable.ic_user_placeholder)
                             .error(R.drawable.ic_user_placeholder)
                             .into(profileImage)

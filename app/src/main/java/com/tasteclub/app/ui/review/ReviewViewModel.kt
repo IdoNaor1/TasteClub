@@ -120,13 +120,6 @@ class ReviewViewModel(
                     return@launch
                 }
 
-                val user = try {
-                    authRepository.refreshUserFromRemote(uid).also { Log.d(TAG, "refreshed user: $it") }
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error refreshing user from remote: ${e.message}", e)
-                    null
-                }
-
                 Log.d(TAG, "Looking up restaurant in local cache: $rid")
                 var finalRestaurant = restaurantRepository.getRestaurantById(rid)
                 Log.d(TAG, "local restaurant: $finalRestaurant")
@@ -180,8 +173,6 @@ class ReviewViewModel(
 
                 val review = Review(
                     userId = uid,
-                    userName = user?.userName ?: "",
-                    userProfileImageUrl = user?.profileImageUrl ?: "",
                     restaurantId = finalRestaurant.id,
                     restaurantName = finalRestaurant.name,
                     rating = rating.toInt(),

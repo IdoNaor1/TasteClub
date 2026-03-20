@@ -16,8 +16,6 @@ data class ReviewEntity(
     @PrimaryKey val id: String,
 
     val userId: String,
-    val userName: String,
-    val userProfileImageUrl: String,
 
     val restaurantId: String,
     val restaurantName: String,

@@ -98,19 +98,27 @@ class ProfileViewModel(
     }
 
     /**
-     * Load count of user's reviews
+     * Load count of user's reviews.
+     * First fetches from Firestore to populate the Room cache, then observes Room
+     * so the count is always accurate regardless of where the user navigates from.
      */
     private fun loadReviewCount() {
         viewModelScope.launch {
             try {
-                val userId = authRepository.currentUserId()
-                if (userId != null) {
-                    reviewRepository.observeReviewsByUser(userId).observeForever { reviews ->
-                        _reviewCount.value = reviews.size
-                    }
+                val userId = authRepository.currentUserId() ?: return@launch
+
+                // Populate Room cache from Firestore (fire-and-forget if offline)
+                try {
+                    reviewRepository.refreshUserReviewsPage(userId = userId, limit = 200)
+                } catch (_: Exception) {
+                    // Offline or error – Room may already have data; continue to observe
+                }
+
+                // Now observe Room so the count updates reactively
+                reviewRepository.observeReviewsByUser(userId).observeForever { reviews ->
+                    _reviewCount.value = reviews.size
                 }
             } catch (e: Exception) {
-                // Silently fail for review count
                 _reviewCount.value = 0
             }
         }
