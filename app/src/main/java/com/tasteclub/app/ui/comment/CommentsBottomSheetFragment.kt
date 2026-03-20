@@ -58,27 +58,21 @@ class CommentsBottomSheetFragment : BottomSheetDialogFragment() {
         // so userName/userImageUrl are populated when comments are posted.
         lifecycleScope.launch {
             val authRepo = ServiceLocator.provideAuthRepository(requireContext())
-            val user = authRepo.getCurrentUserOnce()
+            val userId = authRepo.getCurrentUserOnce()?.uid ?: authRepo.currentUserId() ?: ""
 
-            val userId       = user?.uid           ?: authRepo.currentUserId() ?: ""
-            val userName     = user?.userName      ?: ""
-            val userImageUrl = user?.profileImageUrl ?: ""
-
-            setupViewModel(userId, userName, userImageUrl)
+            setupViewModel(userId)
             setupRecyclerView()
             setupInput()
             viewModel.loadComments(reviewId)
         }
     }
 
-    private fun setupViewModel(userId: String, userName: String, userImageUrl: String) {
+    private fun setupViewModel(userId: String) {
         val commentRepo = ServiceLocator.provideCommentRepository(requireContext())
 
         val factory = CommentsViewModelFactory(
-            commentRepository  = commentRepo,
-            currentUserId      = userId,
-            currentUserName    = userName,
-            currentUserImageUrl = userImageUrl
+            commentRepository = commentRepo,
+            currentUserId     = userId
         )
         viewModel = ViewModelProvider(this, factory)[CommentsViewModel::class.java]
     }

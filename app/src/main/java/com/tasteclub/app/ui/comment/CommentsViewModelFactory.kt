@@ -6,9 +6,7 @@ import com.tasteclub.app.data.repository.CommentRepository
 
 class CommentsViewModelFactory(
     private val commentRepository: CommentRepository,
-    private val currentUserId: String,
-    private val currentUserName: String,
-    private val currentUserImageUrl: String
+    private val currentUserId: String
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
@@ -16,9 +14,7 @@ class CommentsViewModelFactory(
         if (modelClass.isAssignableFrom(CommentsViewModel::class.java)) {
             return CommentsViewModel(
                 commentRepository,
-                currentUserId,
-                currentUserName,
-                currentUserImageUrl
+                currentUserId
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")

@@ -22,6 +22,55 @@ class AuthRepository(
     private val networkMonitor: NetworkMonitor
 ) {
 
+    // Simple in-memory cache for user profiles to avoid UI stutter/flicker
+    // Key: UserId, Value: UserPair(Name, PhotoUrl)
+    private val userProfileCache = java.util.concurrent.ConcurrentHashMap<String, Pair<String, String>>()
+    private val missingUsers = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+
+    init {
+        // Clear cache if we detect internet status change (optional, but good for retrying failed loads)
+        // For now we keep it simple.
+    }
+
+    /**
+     * Resolves user display info (Name, PhotoUrl).
+     * Strategy: Memory -> Room -> Firestore.
+     * Returns null if user deleted/not found.
+     */
+    suspend fun resolveUserDisplayInfo(userId: String): Pair<String, String>? {
+        if (userId.isBlank()) return null
+
+        // 1. Memory Cache
+        userProfileCache[userId]?.let { return it }
+        if (missingUsers.contains(userId)) return null
+
+        // 2. Room Cache (Fast)
+        val localUser = userDao.getByIdOnce(userId)
+        if (localUser != null) {
+            val info = localUser.userName to localUser.profileImageUrl
+            userProfileCache[userId] = info
+            return info
+        }
+
+        // 3. Network (Slower)
+        return try {
+            val remoteUser = firestoreSource.getUser(userId)
+            if (remoteUser != null) {
+                // Cache locally in Room for future
+                userDao.upsert(remoteUser.toEntity())
+
+                val info = remoteUser.userName to remoteUser.profileImageUrl
+                userProfileCache[userId] = info
+                info
+            } else {
+                missingUsers.add(userId)
+                null
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     fun currentUserId(): String? = authSource.currentUserId()
     fun isLoggedIn(): Boolean = authSource.isLoggedIn()
 

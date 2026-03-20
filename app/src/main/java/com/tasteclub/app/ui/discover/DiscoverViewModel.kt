@@ -302,8 +302,7 @@ class DiscoverViewModel(
         } else {
             allReviews.filter { review ->
                 matchesQuery(review.text, queryWords) ||
-                        matchesQuery(review.restaurantName, queryWords) ||
-                        matchesQuery(review.userName, queryWords)
+                        matchesQuery(review.restaurantName, queryWords)
             }
         }
         if (minRat > 0) {

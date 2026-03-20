@@ -10,9 +10,7 @@ import kotlinx.coroutines.launch
 
 class CommentsViewModel(
     private val commentRepository: CommentRepository,
-    val currentUserId: String,
-    val currentUserName: String,
-    val currentUserImageUrl: String
+    val currentUserId: String
 ) : ViewModel() {
 
     sealed class State {
@@ -44,8 +42,6 @@ class CommentsViewModel(
                 val comment = Comment(
                     reviewId = reviewId,
                     userId = currentUserId,
-                    userName = currentUserName,
-                    userImageUrl = currentUserImageUrl,
                     text = text.trim()
                 )
                 val saved = commentRepository.addComment(comment)

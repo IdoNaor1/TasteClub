@@ -13,8 +13,13 @@ import com.squareup.picasso.Picasso
 import com.tasteclub.app.R
 import com.tasteclub.app.data.model.Review
 import com.tasteclub.app.ui.common.ReviewDiffCallback
+import com.tasteclub.app.util.ServiceLocator
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * MyPostsAdapter - RecyclerView adapter for displaying user's own reviews
@@ -67,9 +72,54 @@ class MyPostsAdapter(
         private val star4ImageView: ImageView = itemView.findViewById(R.id.star4ImageView)
         private val star5ImageView: ImageView = itemView.findViewById(R.id.star5ImageView)
 
+        private var currentJob: kotlinx.coroutines.Job? = null
+
         private val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
 
         fun bind(review: Review) {
+            // Cancel pending jobs
+            currentJob?.cancel()
+
+            // Resolve User Info (even for my posts, to be consistent and safe)
+            // Although "My Posts" implies "Me", data consistency is better if we fetch.
+            // But for "My Posts" optimization, we KNOW the user is the current logged in user.
+            // We can skip the async fetch and use the injected current user details if we passed them,
+            // but the adapter only knows currentUserId string.
+            // Let's use the same async pattern for consistency.
+
+            val context = itemView.context
+            val authRepo = ServiceLocator.provideAuthRepository(context)
+
+            // Views might be missing in My Posts card
+            val userNameTextView = itemView.findViewById<TextView>(R.id.userNameTextView)
+            val userAvatarImageView = itemView.findViewById<ImageView>(R.id.userAvatarImageView)
+
+            userNameTextView?.text = "Loading..."
+            userAvatarImageView?.setImageResource(R.drawable.ic_user_placeholder)
+
+            currentJob = CoroutineScope(Dispatchers.Main).launch {
+                 val userInfo = withContext(Dispatchers.IO) {
+                    authRepo.resolveUserDisplayInfo(review.userId)
+                 }
+
+                 if (userInfo != null) {
+                    userNameTextView?.text = userInfo.first
+                    if (userInfo.second.isNotBlank()) {
+                        try {
+                            userAvatarImageView?.let {
+                                Picasso.get().load(userInfo.second)
+                                 .placeholder(R.drawable.ic_user_placeholder)
+                                 .error(R.drawable.ic_user_placeholder)
+                                 .fit().centerCrop().into(it)
+                            }
+                        } catch(e: Exception) {}
+                    }
+                 } else {
+                    userNameTextView?.text = "Deleted User"
+                 }
+            }
+
+
             restaurantNameTextView.text = review.restaurantName
             restaurantAddressTextView.text = review.restaurantAddress
 

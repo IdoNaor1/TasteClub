@@ -10,6 +10,12 @@ import com.tasteclub.app.R
 import com.tasteclub.app.data.model.Review
 import com.tasteclub.app.databinding.ItemReviewCardBinding
 import com.tasteclub.app.ui.common.ReviewDiffCallback
+import com.tasteclub.app.data.repository.AuthRepository
+import com.tasteclub.app.util.ServiceLocator
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -45,29 +51,57 @@ class ReviewAdapter(
         private val binding: ItemReviewCardBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
+        private var currentJob: kotlinx.coroutines.Job? = null
+
         fun bind(review: Review) {
+            // Cancel any pending user resolution for recycled view
+            currentJob?.cancel()
+
             with(binding) {
-                // User info
-                userNameTextView.text = review.userName
+                val context = root.context
+                
+                // --- USER IDENTITY RESOLUTION ---
+                // Reset to placeholder state first
+                userNameTextView.text = "Loading..."
+                userAvatarImageView.setImageResource(R.drawable.ic_user_placeholder)
+
+                if (review.userId.isNotBlank()) {
+                    val authRepo = ServiceLocator.provideAuthRepository(context)
+                    
+                    // Use View's lifecycle scope if possible, or create a scope
+                    currentJob = CoroutineScope(Dispatchers.Main).launch {
+                        val userInfo = withContext(Dispatchers.IO) {
+                            authRepo.resolveUserDisplayInfo(review.userId)
+                        }
+
+                        if (userInfo != null) {
+                            val (name, photoUrl) = userInfo
+                            userNameTextView.text = name
+                            
+                            if (photoUrl.isNotBlank()) {
+                                try {
+                                    Picasso.get()
+                                        .load(photoUrl)
+                                        .placeholder(R.drawable.ic_user_placeholder)
+                                        .error(R.drawable.ic_user_placeholder)
+                                        .fit()
+                                        .centerCrop()
+                                        .into(userAvatarImageView)
+                                } catch (e: Exception) {
+                                    // ignore
+                                }
+                            }
+                        } else {
+                            // User deleted or not found
+                            userNameTextView.text = "Deleted User"
+                            userAvatarImageView.setImageResource(R.drawable.ic_user_placeholder)
+                        }
+                    }
+                }
+                
+                // Existing date logic
                 val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
                 dateTextView.text = dateFormat.format(review.createdAt)
-
-                // Load user avatar
-                if (!review.userProfileImageUrl.isNullOrBlank()) {
-                    try {
-                        Picasso.get()
-                            .load(review.userProfileImageUrl)
-                            .placeholder(R.drawable.ic_user_placeholder)
-                            .error(R.drawable.ic_user_placeholder)
-                            .fit()
-                            .centerCrop()
-                            .into(userAvatarImageView)
-                    } catch (e: IllegalArgumentException) {
-                        userAvatarImageView.setImageResource(R.drawable.ic_user_placeholder)
-                    }
-                } else {
-                    userAvatarImageView.setImageResource(R.drawable.ic_user_placeholder)
-                }
 
                 // Username / avatar click -> navigate to user profile
                 val userClickListener = View.OnClickListener {

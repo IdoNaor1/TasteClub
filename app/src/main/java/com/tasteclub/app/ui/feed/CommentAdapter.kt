@@ -12,8 +12,14 @@ import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
 import com.tasteclub.app.R
 import com.tasteclub.app.data.model.Comment
+import com.tasteclub.app.util.ServiceLocator
 import com.tasteclub.app.util.toRelativeString
 import de.hdodenhof.circleimageview.CircleImageView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class CommentAdapter(
     private val currentUserId: String?,
@@ -37,27 +43,47 @@ class CommentAdapter(
         private val tvCommentText: TextView = itemView.findViewById(R.id.tvCommentText)
         private val btnDelete: ImageButton = itemView.findViewById(R.id.btnDelete)
 
+        private var currentJob: Job? = null
+
         fun bind(comment: Comment) {
-            tvUserName.text = comment.userName
+            // Cancel any pending user resolution job
+            currentJob?.cancel()
+
+            // --- USER RESOLUTION ---
+            tvUserName.text = "Loading..."
+            ivAvatar.setImageResource(R.drawable.ic_user_placeholder)
+
+            val context = itemView.context
+            val authRepo = ServiceLocator.provideAuthRepository(context)
+
+            currentJob = CoroutineScope(Dispatchers.Main).launch {
+                val userInfo = withContext(Dispatchers.IO) {
+                    authRepo.resolveUserDisplayInfo(comment.userId)
+                }
+
+                if (userInfo != null) {
+                    tvUserName.text = userInfo.first
+                    if (userInfo.second.isNotBlank()) {
+                         try {
+                            Picasso.get()
+                                .load(userInfo.second)
+                                .placeholder(R.drawable.ic_user_placeholder)
+                                .error(R.drawable.ic_user_placeholder)
+                                .fit()
+                                .centerCrop()
+                                .into(ivAvatar)
+                        } catch (e: Exception) {
+                            // ignore
+                        }
+                    }
+                } else {
+                    tvUserName.text = "Deleted User"
+                }
+            }
+
+            // Timestamp & Text
             tvTimestamp.text = comment.createdAt.toRelativeString()
             tvCommentText.text = comment.text
-
-            // Load avatar with Picasso
-            if (comment.userImageUrl.isNotBlank()) {
-                try {
-                    Picasso.get()
-                        .load(comment.userImageUrl)
-                        .placeholder(R.drawable.ic_user_placeholder)
-                        .error(R.drawable.ic_user_placeholder)
-                        .fit()
-                        .centerCrop()
-                        .into(ivAvatar)
-                } catch (e: IllegalArgumentException) {
-                    ivAvatar.setImageResource(R.drawable.ic_user_placeholder)
-                }
-            } else {
-                ivAvatar.setImageResource(R.drawable.ic_user_placeholder)
-            }
 
             // Show delete button only for the current user's own comments
             if (comment.userId == currentUserId) {
@@ -78,4 +104,3 @@ class CommentAdapter(
             oldItem == newItem
     }
 }
-
