@@ -1,10 +1,16 @@
 package com.tasteclub.app
 
+import android.graphics.drawable.ColorDrawable
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.ColorUtils
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LiveData
@@ -67,16 +73,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        applySystemBarStyles()
         super.onCreate(savedInstanceState)
 
         // Initialize view binding
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        syncNavigationBarWithBottomNav()
 
         // Handle edge-to-edge display
         ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            // Keep status/cutout spacing, but do not add root bottom inset to avoid a gap under bottom nav.
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0)
             insets
         }
 
@@ -96,6 +105,49 @@ class MainActivity : AppCompatActivity() {
         observeNetworkStatus()
 
         //initPlaces()
+    }
+
+    private fun applySystemBarStyles() {
+        val typedArray = theme.obtainStyledAttributes(intArrayOf(com.google.android.material.R.attr.colorSurface))
+        val barColor = typedArray.getColor(0, 0)
+        typedArray.recycle()
+
+        val useDarkIcons = ColorUtils.calculateLuminance(barColor) > 0.5
+        val barStyle = if (useDarkIcons) {
+            SystemBarStyle.light(barColor, barColor)
+        } else {
+            SystemBarStyle.dark(barColor)
+        }
+
+        enableEdgeToEdge(
+            statusBarStyle = barStyle,
+            navigationBarStyle = barStyle
+        )
+    }
+
+    private fun syncNavigationBarWithBottomNav() {
+        val navBarColor = (binding.bottomNavigation.background as? ColorDrawable)?.color
+            ?: resolveSurfaceColor()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // Disable system contrast scrim so the chosen brand surface color is preserved.
+            window.isNavigationBarContrastEnforced = false
+        }
+
+        @Suppress("DEPRECATION")
+        run {
+            window.navigationBarColor = navBarColor
+        }
+
+        val useDarkIcons = ColorUtils.calculateLuminance(navBarColor) > 0.5
+        WindowCompat.getInsetsController(window, binding.root)?.isAppearanceLightNavigationBars = useDarkIcons
+    }
+
+    private fun resolveSurfaceColor(): Int {
+        val typedArray = theme.obtainStyledAttributes(intArrayOf(com.google.android.material.R.attr.colorSurface))
+        val color = typedArray.getColor(0, 0)
+        typedArray.recycle()
+        return color
     }
 
     /**
