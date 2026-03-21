@@ -54,7 +54,9 @@ class MyPostsAdapter(
     ) : RecyclerView.ViewHolder(itemView) {
 
         private val restaurantImageView: ImageView = itemView.findViewById(R.id.restaurantImageView)
+        private val imageContainer: View = itemView.findViewById(R.id.imageContainer)
         private val editFab: FloatingActionButton = itemView.findViewById(R.id.editFab)
+        private val noImageEditFab: FloatingActionButton = itemView.findViewById(R.id.noImageEditFab)
         // restaurantNameTextView is now a TextView (was MaterialButton)
         private val restaurantNameTextView: TextView = itemView.findViewById(R.id.restaurantNameTextView)
         private val restaurantAddressTextView: TextView = itemView.findViewById(R.id.restaurantAddressTextView)
@@ -135,6 +137,9 @@ class MyPostsAdapter(
 
             // Load food image
             if (review.imageUrl.isNotBlank()) {
+                imageContainer.visibility = View.VISIBLE
+                editFab.visibility = View.VISIBLE
+                noImageEditFab.visibility = View.GONE
                 Picasso.get()
                     .load(review.imageUrl)
                     .placeholder(R.drawable.image_placeholder)
@@ -143,13 +148,17 @@ class MyPostsAdapter(
                     .centerCrop()
                     .into(restaurantImageView)
             } else {
-                restaurantImageView.setImageResource(R.drawable.image_placeholder)
+                imageContainer.visibility = View.GONE
+                editFab.visibility = View.GONE
+                noImageEditFab.visibility = View.VISIBLE
+                restaurantImageView.setImageDrawable(null)
             }
 
             // Star rating
             setStarRating(review.rating)
 
             editFab.setOnClickListener { onEditClick(review) }
+            noImageEditFab.setOnClickListener { onEditClick(review) }
             deleteButton.setOnClickListener { onDeleteClick(review) }
 
             // Like button
